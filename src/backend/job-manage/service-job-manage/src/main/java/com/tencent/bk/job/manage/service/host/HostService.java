@@ -29,17 +29,15 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
+import com.tencent.bk.job.common.model.dto.DynamicGroupWithHost;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
-import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
-import com.tencent.bk.job.manage.model.web.vo.common.AgentStatistics;
 
 import java.util.Collection;
 import java.util.List;
@@ -146,7 +144,7 @@ public interface HostService {
      * @param username         用户名
      * @return 动态分组信息列表
      */
-    List<DynamicGroupInfoDTO> getAppDynamicGroupList(String username, AppResourceScope appResourceScope);
+    List<DynamicGroupWithHost> getAppDynamicGroupList(String username, AppResourceScope appResourceScope);
 
     /**
      * 根据动态分组 ID 列表批量获取带主机信息的动态分组信息列表
@@ -156,9 +154,9 @@ public interface HostService {
      * @param dynamicGroupIdList 动态分组 ID 列表
      * @return 带主机信息的动态分组信息列表
      */
-    List<DynamicGroupInfoDTO> getBizDynamicGroupHostList(String username,
-                                                         Long bizId,
-                                                         List<String> dynamicGroupIdList);
+    List<DynamicGroupWithHost> getBizDynamicGroupHostList(String username,
+                                                          Long bizId,
+                                                          List<String> dynamicGroupIdList);
 
     /**
      * 根据 IP 列表查询主机信息
@@ -177,25 +175,32 @@ public interface HostService {
                                                 Long appId,
                                                 List<BizTopoNode> appTopoNodeList);
 
-    AgentStatistics getAgentStatistics(String username,
-                                       Long appId,
-                                       AgentStatisticsReq agentStatisticsReq);
-
     /**
-     * 获取业务下的主机
+     * 获取业务下的主机。如果在Job缓存的主机中不存在，那么从cmdb查询
      *
-     * @param appId Job业务ID
-     * @param hosts 主机列表
+     * @param appId          Job业务ID
+     * @param hosts          主机列表
+     * @param refreshAgentId 是否刷新主机的bk_agent_id
      */
-    ServiceListAppHostResultDTO listAppHosts(Long appId, List<HostDTO> hosts);
+    ServiceListAppHostResultDTO listAppHostsPreferCache(Long appId, List<HostDTO> hosts, boolean refreshAgentId);
 
     /**
-     * 根据主机批量获取主机。如果在同步的主机中不存在，那么从cmdb查询
+     * 批量获取主机。如果在Job缓存的主机中不存在，那么从cmdb查询
      *
      * @param hosts 主机
      * @return 主机
      */
     List<ApplicationHostDTO> listHosts(Collection<HostDTO> hosts);
+
+    /**
+     * 根据云区域ID与IPv6地址查询主机。如果在同步的主机中不存在，那么从cmdb查询
+     * ipv6字段精确匹配目标主机多个Ipv6地址中的其中一个
+     *
+     * @param cloudAreaId 云区域ID
+     * @param ipv6        IPv6地址
+     * @return 主机
+     */
+    List<ApplicationHostDTO> listHostsByCloudIpv6(Long cloudAreaId, String ipv6);
 
     /**
      * 根据主机批量获取主机。如果在同步的主机中不存在，那么从cmdb查询
@@ -204,6 +209,14 @@ public interface HostService {
      * @return 主机 Map<hostId, host>
      */
     Map<Long, ApplicationHostDTO> listHostsByHostIds(Collection<Long> hostIds);
+
+    /**
+     * 从cmdb实时查询主机
+     *
+     * @param hostIds 主机ID列表
+     * @return 主机
+     */
+    List<ApplicationHostDTO> listHostsFromCmdbByHostIds(List<Long> hostIds);
 
     /**
      * 根据ip获取主机

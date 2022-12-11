@@ -348,6 +348,16 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
+    public List<ApplicationHostDTO> listHostInfoByCloudIpv6(Long cloudAreaId, String ipv6) {
+        List<Condition> conditions = new ArrayList<>();
+        if (cloudAreaId != null) {
+            conditions.add(TABLE.CLOUD_AREA_ID.eq(JooqDataTypeUtil.buildULong(cloudAreaId)));
+        }
+        conditions.add(TABLE.IP_V6.like("%" + ipv6 + "%"));
+        return listHostInfoByConditions(conditions);
+    }
+
+    @Override
     public List<ApplicationHostDTO> listHostInfoByHostNames(Collection<String> hostNames) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.IP_DESC.in(hostNames));
@@ -875,6 +885,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             .set(TABLE.CLOUD_AREA_ID, ULong.valueOf(applicationHostDTO.getCloudAreaId()))
             .set(TABLE.IP, applicationHostDTO.getIp())
             .set(TABLE.IP_V6, applicationHostDTO.getIpv6())
+            .set(TABLE.AGENT_ID, applicationHostDTO.getAgentId())
             .set(TABLE.DISPLAY_IP, applicationHostDTO.getDisplayIp())
             .set(TABLE.CLOUD_IP, applicationHostDTO.getCloudIp())
             .set(TABLE.IP_DESC, applicationHostDTO.getHostName())

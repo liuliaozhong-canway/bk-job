@@ -45,7 +45,7 @@
                         text
                         theme="primary"
                         @click="handleRemove(row)">
-                        删除
+                        移除
                     </bk-button>
                 </template>
                 <template
@@ -88,7 +88,7 @@
         groupHostList,
     } from '../../utils';
 
-    import CollapseBox from './collapse-box/index.vue';
+    import CollapseBox from './collapse-box.vue';
 
     const props = defineProps({
         data: {
@@ -137,7 +137,10 @@
     const fetchData = () => {
         isLoading.value = true;
         Manager.service.fetchHostsDetails({
-            [Manager.nameStyle('hostList')]: props.data,
+            [Manager.nameStyle('hostList')]: props.data.map(item => ({
+                [Manager.nameStyle('hostId')]: item.host_id,
+                [Manager.nameStyle('meta')]: item.meta,
+            })),
         })
         .then((data) => {
             validHostList.value = data;
@@ -172,7 +175,7 @@
             isInnerChange = false;
             return;
         }
-        
+
         if (props.data.length > 0) {
             fetchData();
         } else {
@@ -235,7 +238,7 @@
     };
 </script>
 <style lang="postcss">
-    @import "../../styles/table.mixin.css";
+    @import url("../../styles/table.mixin.css");
 
     .ip-selector-view-host {
         @include table;

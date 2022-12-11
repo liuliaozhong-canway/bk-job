@@ -157,7 +157,7 @@
                         :is-file="isFile"
                         :is-task="isTask"
                         :log-filter="params.keyword"
-                        :name="`${params.id}_${params.retryCount}_${dispalyGroup.groupName}_${currentHost.ip}_${params.keyword}`"
+                        :name="`${params.id}_${params.retryCount}_${dispalyGroup.groupName}_${currentHost.key}_${params.keyword}`"
                         :retry-count="params.retryCount"
                         :step-instance-id="data.stepInstanceId"
                         @on-search="handleLogSearch" />
@@ -236,7 +236,7 @@
             ViewGlobalVariable,
             ViewOperationRecord,
             ViewStepInfo,
-            
+
         },
         mixins: [
             mixins,
@@ -312,7 +312,7 @@
                 } else {
                     text = `${text} ${I18n.t('history.脚本执行')}`;
                 }
-                
+
                 return text;
             },
             /**
@@ -363,7 +363,7 @@
                 if (this.params.id < 1 || this.params.maxIpsPerResultGroup < 1) {
                     return;
                 }
-                
+
                 this.isLoading = true;
                 TaskExecuteService.fetchStepExecutionResult({
                     ...this.params,
@@ -389,7 +389,7 @@
                         this.$Progress.finish();
                         return;
                     }
-                    
+
                     this.$pollingQueueRun(this.fetchStep);
                 })
                     .catch((error) => {
@@ -432,6 +432,7 @@
                 this.taskInstanceId = payload.taskInstanceId;
                 this.isTask = payload.isTask;
                 this.taskStepList = Object.freeze(payload.taskStepList);
+                this.taskExecution = payload.taskExecution;
                 appendURLParams({
                     retryCount: payload.retryCount,
                     stepInstanceId: payload.stepInstanceId,
@@ -688,6 +689,19 @@
                     });
                     return;
                 }
+                if (from === 'planList') {
+                    this.$router.push({
+                        name: 'historyTask',
+                        params: {
+                            id: this.taskInstanceId,
+                        },
+                        query: {
+                            from: 'planList',
+                        },
+                    });
+                    return;
+                }
+
                 if (from === 'plan') {
                     // 保留执行方案到步骤详情的操作路径
                     this.$router.push({
@@ -836,8 +850,10 @@
             padding: 20px 24px;
 
             .container-left {
+                position: relative;
                 height: 100%;
                 overflow: hidden;
+                overflow: auto;
                 background: #fff;
                 border: 1px solid #dcdee5;
                 border-bottom-left-radius: 2px;
@@ -846,8 +862,8 @@
 
             .container-right {
                 display: flex;
-                width: 0;
                 height: 100%;
+                min-width: 800px;
                 overflow: hidden;
                 flex-direction: column;
                 flex: 1;

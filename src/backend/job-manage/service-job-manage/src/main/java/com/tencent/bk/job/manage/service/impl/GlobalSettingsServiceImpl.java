@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.consts.globalsetting.GlobalSettingKeys;
 import com.tencent.bk.job.manage.common.consts.globalsetting.OSTypeEnum;
@@ -112,7 +113,7 @@ import java.util.stream.Collectors;
 @Service
 public class GlobalSettingsServiceImpl implements GlobalSettingsService {
 
-    private static final Pattern PATTERN = Pattern.compile("^([+\\-]?\\d+)([a-zA-Z]{0,2})$");
+    private static final Pattern PATTERN = Pattern.compile("^([.0-9]+)([a-zA-Z]{0,2})$");
     private static final String STRING_TPL_KEY_CURRENT_VERSION = "current_ver";
     private static final String STRING_TPL_KEY_CURRENT_YEAR = "current_year";
     private final DSLContext dslContext;
@@ -130,8 +131,6 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private final BuildProperties buildProperties;
     @Value("${job.manage.upload.filesize.max:5GB}")
     private String configedMaxFileSize;
-    @Value("${job.feature.file-manage.enabled:false}")
-    private Boolean enableFeatureFileManage;
 
     @Autowired
     public GlobalSettingsServiceImpl(
@@ -393,18 +392,18 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         }
     }
 
-    private Pair<Long, String> parseFileSize(String str) {
+    private Pair<Float, String> parseFileSize(String str) {
         Matcher matcher = PATTERN.matcher(str);
         if (!matcher.matches()) {
             return null;
         }
-        long amount = Long.parseLong(matcher.group(1));
+        float amount = Float.parseFloat(matcher.group(1));
         String unit = matcher.group(2);
         return Pair.of(amount, unit);
     }
 
     private FileUploadSettingVO getFileUploadSettingsFromStr(String str) {
-        Pair<Long, String> configedValue = parseFileSize(str);
+        Pair<Float, String> configedValue = parseFileSize(str);
         if (configedValue == null) return null;
         return new FileUploadSettingVO(configedValue.getLeft(), configedValue.getRight(), null, null);
     }
@@ -416,7 +415,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
 
     @Override
     public Boolean saveFileUploadSettings(String username, FileUploadSettingReq req) {
-        Long uploadMaxSize = req.getAmount();
+        Float uploadMaxSize = req.getAmount();
         StorageUnitEnum unit = req.getUnit();
         Integer restrictMode = req.getRestrictMode();
         List<String> suffixList = req.getSuffixList();
@@ -424,7 +423,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             unit = StorageUnitEnum.B;
         }
         if (uploadMaxSize <= 0) {
-            uploadMaxSize = 5L;
+            uploadMaxSize = 5.0f;
             unit = StorageUnitEnum.GB;
         }
         if (restrictMode == null) {
@@ -789,7 +788,8 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     }
 
     private void addEnableFeatureFileManageConfig(Map<String, Object> configMap) {
-        configMap.put(GlobalSettingKeys.KEY_ENABLE_FEATURE_FILE_MANAGE, enableFeatureFileManage);
+        configMap.put(GlobalSettingKeys.KEY_ENABLE_FEATURE_FILE_MANAGE,
+            FeatureToggle.getInstance().checkFeature(FeatureToggle.FEATURE_FILE_MANAGE, null));
     }
 
     private void addEnableUploadToArtifactoryConfig(Map<String, Object> configMap) {

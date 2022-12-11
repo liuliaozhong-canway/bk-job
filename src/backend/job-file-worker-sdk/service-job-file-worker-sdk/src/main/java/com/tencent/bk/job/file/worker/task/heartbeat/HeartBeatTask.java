@@ -25,10 +25,8 @@
 package com.tencent.bk.job.file.worker.task.heartbeat;
 
 import com.tencent.bk.job.common.model.http.HttpReq;
-import com.tencent.bk.job.common.util.http.ExtHttpHelper;
-import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpReqGenUtil;
-import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.common.util.http.JobHttpClient;
 import com.tencent.bk.job.common.util.machine.MachineUtil;
 import com.tencent.bk.job.file.worker.config.WorkerConfig;
 import com.tencent.bk.job.file.worker.cos.service.EnvironmentService;
@@ -36,6 +34,7 @@ import com.tencent.bk.job.file.worker.cos.service.GatewayInfoService;
 import com.tencent.bk.job.file.worker.cos.service.MetaDataService;
 import com.tencent.bk.job.file_gateway.model.req.inner.HeartBeatReq;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -47,16 +46,19 @@ public class HeartBeatTask {
 
     public static volatile boolean runFlag = true;
 
-    private final ExtHttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
-
+    private final JobHttpClient jobHttpClient;
     private final WorkerConfig workerConfig;
     private final GatewayInfoService gatewayInfoService;
     private final MetaDataService metaDataService;
     private final EnvironmentService environmentService;
 
     @Autowired
-    public HeartBeatTask(WorkerConfig workerConfig, GatewayInfoService gatewayInfoService,
-                         MetaDataService metaDataService, EnvironmentService environmentService) {
+    public HeartBeatTask(JobHttpClient jobHttpClient,
+                         WorkerConfig workerConfig,
+                         GatewayInfoService gatewayInfoService,
+                         MetaDataService metaDataService,
+                         EnvironmentService environmentService) {
+        this.jobHttpClient = jobHttpClient;
         this.workerConfig = workerConfig;
         this.gatewayInfoService = gatewayInfoService;
         this.metaDataService = metaDataService;
@@ -70,12 +72,15 @@ public class HeartBeatTask {
     private HeartBeatReq getWorkerInfo() {
         HeartBeatReq heartBeatReq = new HeartBeatReq();
         heartBeatReq.setName(workerConfig.getName());
+        heartBeatReq.setTagList(workerConfig.getTagList());
         heartBeatReq.setAppId(workerConfig.getAppId());
         heartBeatReq.setToken(workerConfig.getToken());
 
         // 二进制部署环境与K8s环境差异处理
         heartBeatReq.setAccessHost(environmentService.getAccessHost());
-        heartBeatReq.setInnerIp(environmentService.getInnerIp());
+        Pair<String, String> protocolAndIpPair = environmentService.getInnerProtocolAndIp();
+        heartBeatReq.setInnerIpProtocol(protocolAndIpPair.getLeft());
+        heartBeatReq.setInnerIp(protocolAndIpPair.getRight());
 
         heartBeatReq.setAccessPort(workerConfig.getAccessPort());
         heartBeatReq.setCloudAreaId(workerConfig.getCloudAreaId());
@@ -102,15 +107,6 @@ public class HeartBeatTask {
         }
         String url = gatewayInfoService.getHeartBeatUrl();
         HttpReq req = HttpReqGenUtil.genSimpleJsonReq(url, getWorkerInfo());
-        String respStr;
-        try {
-            if (log.isDebugEnabled()) {
-                log.debug("url={},body={},headers={}", url, req.getBody(), JsonUtils.toJson(req.getHeaders()));
-            }
-            respStr = httpHelper.post(url, req.getBody(), req.getHeaders());
-            log.debug("respStr={}", respStr);
-        } catch (Exception e) {
-            log.error("Fail to request file-gateway:", e);
-        }
+        jobHttpClient.post(req);
     }
 }

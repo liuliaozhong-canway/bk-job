@@ -77,12 +77,13 @@
                 </template>
             </scroll-faker>
         </div>
-        <column-setting
-            v-if="isShowColumnSetting"
-            :column-list="columnList"
-            :value="allShowColumn"
-            @change="handleSubmitSetting"
-            @close="handleHideSetting" />
+        <div ref="setting">
+            <column-setting
+                :column-list="columnList"
+                :value="allShowColumn"
+                @change="handleSubmitSetting"
+                @close="handleHideSetting" />
+        </div>
     </div>
 </template>
 <script>
@@ -139,6 +140,20 @@
             orderField: 'exitCode',
             order: '',
             width: 100,
+            checked: true,
+        },
+        {
+            label: 'Agent ID',
+            name: 'agentId',
+            width: 140,
+            checked: true,
+        },
+        {
+            label: 'Host ID',
+            name: 'hostId',
+            orderField: 'hostId',
+            order: '',
+            width: 90,
             checked: true,
         },
     ];
@@ -210,7 +225,7 @@
                     }
                     return result;
                 }, 65);
-                
+
                 return {
                     width: `${Math.max(allShowColumnWidth, 217)}px`,
                 };
@@ -223,7 +238,7 @@
                 return this.page * this.pageSize < this.total;
             },
         },
-        
+
         watch: {
             /**
              * @desc IP 列表名称变化时重置翻页
@@ -244,6 +259,7 @@
             },
         },
         mounted () {
+            this.initSettingPopover();
             this.calcPageSize();
             window.addEventListener('resize', this.handleScroll);
             this.$once('hook:beforeDestroy', () => {
@@ -251,6 +267,23 @@
             });
         },
         methods: {
+            initSettingPopover () {
+                this.settingPopover = this.$bkPopover(document.querySelector('#stepDetailIpListSettingBtn'), {
+                    theme: 'light step-execution-history-ip-list-setting',
+                    arrow: true,
+                    interactive: true,
+                    placement: 'bottom-start',
+                    content: this.$refs.setting,
+                    animation: 'slide-toggle',
+                    trigger: 'click',
+                    width: '450px',
+                });
+                this.$once('hook:beforeDestroy', () => {
+                    this.settingPopover.destroy();
+                    this.settingPopover.hide();
+                    this.settingPopover = null;
+                });
+            },
             /**
              * @desc 根据屏幕高度计算单页 pageSize
              */
@@ -270,7 +303,7 @@
                 }
                 const windowHeight = window.innerHeight;
                 const { top } = this.$refs.loading.getBoundingClientRect();
-                
+
                 if (top - 80 < windowHeight) {
                     // 增加分页
                     this.page += 1;
@@ -303,6 +336,7 @@
              */
              handleHideSetting () {
                 this.isShowColumnSetting = false;
+                this.settingPopover.hide();
             },
             /**
              * @desc 表格排序
@@ -315,7 +349,7 @@
                 } = column;
                 const newOrder = order === 1 ? 0 : 1;
                 column.order = newOrder;
-                
+
                 this.columnList = Object.freeze(this.columnList.map((item) => {
                     item.order = '';
                     if (item.orderField === orderField) {
@@ -344,6 +378,7 @@
             },
         },
     };
+
 </script>
 <style lang='postcss'>
     @keyframes list-loading-ani {
@@ -357,7 +392,6 @@
     }
 
     .step-execute-host-list {
-        position: relative;
         width: 287px;
         height: 100%;
         max-height: 100%;
@@ -514,5 +548,9 @@
                 transform-origin: center center;
             }
         }
+    }
+
+    .step-execution-history-ip-list-setting-theme {
+        padding: 0 !important;
     }
 </style>

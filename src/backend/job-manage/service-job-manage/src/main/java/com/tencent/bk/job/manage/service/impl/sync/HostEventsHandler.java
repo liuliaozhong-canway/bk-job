@@ -89,9 +89,9 @@ public class HostEventsHandler extends EventsHandler<HostEventDetail> {
         switch (eventType) {
             case ResourceWatchReq.EVENT_TYPE_CREATE:
             case ResourceWatchReq.EVENT_TYPE_UPDATE:
-                // 去除没有IP的主机信息
-                if (StringUtils.isBlank(hostInfoDTO.getDisplayIp())) {
-                    deleteHostWithoutIp(hostInfoDTO);
+                // 忽略没有hostId的主机事件
+                if (hostInfoDTO.getHostId() == null) {
+                    log.warn("Ignore hostEvent without hostId:{}", event);
                     break;
                 }
                 // 找出Agent有效的IP，并设置Agent状态
@@ -107,16 +107,6 @@ public class HostEventsHandler extends EventsHandler<HostEventDetail> {
             default:
                 break;
         }
-    }
-
-    private void deleteHostWithoutIp(ApplicationHostDTO hostInfoDTO) {
-        int affectedRowNum = applicationHostDAO.deleteBizHostInfoById(null, hostInfoDTO.getHostId());
-        log.info(
-            "{} host deleted, id={} ,ip={}",
-            affectedRowNum,
-            hostInfoDTO.getHostId(),
-            hostInfoDTO.getIp()
-        );
     }
 
     private List<String> buildAgentIdByMultiIp(Long cloudId, String multiIp) {

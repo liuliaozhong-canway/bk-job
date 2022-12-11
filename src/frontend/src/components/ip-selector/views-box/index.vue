@@ -83,7 +83,7 @@
             isInnerChange = false;
             return;
         }
-        
+
         const {
             host_list: hostList,
             node_list: nodeList,
@@ -109,7 +109,7 @@
                 lastDynamicGroupList.value = value;
                 break;
         }
-        
+
         isInnerChange = true;
         emits('change', formatOutput({
             hostList: lastHostList.value,
@@ -119,22 +119,33 @@
     };
 
     defineExpose({
+        getHostList () {
+            if (!hostRef.value) {
+                return [];
+            }
+            return hostRef.value.getHostList();
+        },
         getHostIpList () {
             if (!hostRef.value) {
                 return [];
             }
             return hostRef.value.getHostIpList();
         },
-        getNotAlivelHostIpList () {
+        getAbnormalHostIpList () {
             if (!hostRef.value) {
                 return [];
             }
-            return hostRef.value.getNotAlivelHostIpList();
+            return hostRef.value.getAbnormalHostIpList();
         },
         refresh () {
             hostRef.value && hostRef.value.refresh();
             nodeRef.value && nodeRef.value.refresh();
             dynamicGroupRef.value && dynamicGroupRef.value.refresh();
+        },
+        collapseToggle (toggle) {
+            hostRef.value && hostRef.value.collapseToggle(toggle);
+            nodeRef.value && nodeRef.value.collapseToggle(toggle);
+            dynamicGroupRef.value && dynamicGroupRef.value.collapseToggle(toggle);
         },
     });
 </script>

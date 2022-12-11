@@ -563,17 +563,16 @@ job:
   encrypt:
     # 用于加密作业平台中存储的数据库密码的密码
     password: "job#2021"
-  feature:
-    toggle:
-      fileManage:
-        # 是否开启文件管理特性，容器化环境默认开启
-        enabled: true 
-      cmdbBizSet:
-        # 是否开启cmdb业务集特性，默认开启
-        enabled: true
-      esbApiParamBkBizId:
-        # 是否兼容bk_biz_id参数
-        enabled: true
+  features:
+    file_manage:
+      # 是否开启文件管理特性，容器化环境默认开启
+      enabled: true
+    bk_biz_id_compatible:
+      # 是否兼容bk_biz_id参数
+      enabled: true
+    gse_v2:
+      # 是否对接GSE2.0, 默认使用GSE2.0. 如果需要使用GSE1.0，设置enabled=false
+      enabled: true
   trace:
     report:
       # 是否上报Trace数据至监控平台APM应用，默认不上报
@@ -668,6 +667,7 @@ gatewayConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -756,6 +756,7 @@ manageConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -814,6 +815,7 @@ executeConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 2Gi
     requests:
       cpu: 250m
@@ -865,6 +867,7 @@ crontabConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -925,6 +928,7 @@ logsvrConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -980,6 +984,7 @@ backupConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -1030,6 +1035,7 @@ analysisConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -1080,6 +1086,7 @@ fileGatewayConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 1024m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -1115,6 +1122,12 @@ fileGatewayConfig:
     type: ClusterIP
   # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
+  # 用于确定调度范围的worker标签
+  workerTags:
+    # 能够调度的worker标签白名单，逗号分隔
+    white: "k8s"
+    # 不能调度的worker标签黑名单，逗号分隔
+    black: ""
 
 ## job-file-worker文件源接入点配置
 fileWorkerConfig:
@@ -1130,6 +1143,7 @@ fileWorkerConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -1168,6 +1182,8 @@ fileWorkerConfig:
   instanceName: job-file-worker-public-1
   # 版本号
   version: 0.0.1
+  # 标签，逗号分隔
+  tags: "k8s"
   # 安全凭据
   token: "testToken"
   # 所属业务Id
@@ -1203,6 +1219,7 @@ frontendConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -1260,6 +1277,11 @@ migration:
     tag: "{{APP_VERSION}}"
     # 镜像拉取策略
     pullPolicy: IfNotPresent
+  # 迁移任务资源限制
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
 
 ## migration的init任务配置
 migrationInit:
@@ -1272,6 +1294,10 @@ migrationInit:
     tag: 1.34.0
     # 镜像拉取策略
     pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
 
 ## 其他服务Pod等待migration完成的init任务配置
 waitForMigration:
@@ -1284,3 +1310,7 @@ waitForMigration:
     tag: v1.5.1
     # 镜像拉取策略
     pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi

@@ -51,7 +51,6 @@
                     <div class="shortcurt-action-btn">
                         <Icon
                             v-bk-tooltips="$t('复制')"
-                            class="paste-btn"
                             type="copy"
                             @click="handleCopy" />
                         <Icon
@@ -257,7 +256,6 @@
                     return;
                 }
                 copyMemo = _.cloneDeep(this.localValue);
-                console.log('form copyMemocopyMemo = ', copyMemo);
                 execCopy(this.text);
             },
             /**

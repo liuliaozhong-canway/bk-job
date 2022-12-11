@@ -42,6 +42,9 @@ public class WorkerConfig {
     @Value("${job.file-worker.version:0.0.1}")
     private String version;
 
+    @Value("${job.file-worker.tags:}")
+    private List<String> tagList;
+
     @Value("${job.file-worker.name:anon}")
     private String name;
 
@@ -62,6 +65,9 @@ public class WorkerConfig {
 
     @Value("${job.file-worker.cloud-area-id:0}")
     private Long cloudAreaId;
+
+    @Value("${job.file-worker.inner-ip-protocol:}")
+    private String innerIpProtocol;
 
     @Value("${job.file-worker.inner-ip:}")
     private String innerIp;

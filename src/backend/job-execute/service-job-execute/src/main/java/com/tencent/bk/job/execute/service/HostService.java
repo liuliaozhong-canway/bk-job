@@ -57,6 +57,15 @@ public interface HostService {
     ServiceHostDTO getHost(HostDTO host);
 
     /**
+     * 通过云区域ID与IPv6地址获取主机信息
+     *
+     * @param cloudAreaId 云区域ID
+     * @param ipv6        IPv6地址
+     * @return 主机信息
+     */
+    ServiceHostDTO getHostByCloudIpv6(long cloudAreaId, String ipv6);
+
+    /**
      * 查询主机在白名单中允许的操作
      * tmp: 发布完成后可以仅仅支持使用hostId查询白名单
      *
@@ -71,9 +80,10 @@ public interface HostService {
      *
      * @param appId Job业务ID
      * @param hosts 主机列表
+     * @param refreshAgentId 是否重新刷新主机agentId
      * @return 主机信息
      */
-    ServiceListAppHostResultDTO batchGetAppHosts(Long appId, Collection<HostDTO> hosts);
+    ServiceListAppHostResultDTO batchGetAppHosts(Long appId, Collection<HostDTO> hosts, boolean refreshAgentId);
 
     /**
      * 获取动态分组主机

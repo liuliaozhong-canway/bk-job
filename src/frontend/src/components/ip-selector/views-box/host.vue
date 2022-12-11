@@ -2,7 +2,9 @@
     <div
         v-bkloading="{ isLoading }"
         class="ip-selector-view-host">
-        <collapse-box>
+        <collapse-box
+            ref="collapseBoxRef"
+            name="host">
             <template #title>
                 <span style="font-weight: bold;">【静态拓扑】</span>
                 <span>
@@ -39,12 +41,13 @@
                             清除异常 IP
                         </div>
                     </template>
+                    <render-host-menu-extends />
                 </extend-action>
             </template>
             <render-host-table
                 :column-width-callback="columnWidthCallback"
                 :data="renderData"
-                :show-setting="false">
+                :show-setting="true">
                 <template #[hostRenderKey]="{ row }">
                     <diff-tag :value="diffMap[row.host_id]" />
                 </template>
@@ -55,7 +58,7 @@
                         text
                         theme="primary"
                         @click="handleRemove(row)">
-                        删除
+                        移除
                     </bk-button>
                 </template>
             </render-host-table>
@@ -95,7 +98,8 @@
         isAliveHost,
     } from '../utils';
 
-    import CollapseBox from './components/collapse-box/index.vue';
+    import CollapseBox from './components/collapse-box.vue';
+    import RenderHostMenuExtends from './components/render-host-menu-extends.vue';
 
     const props = defineProps({
         data: {
@@ -108,6 +112,7 @@
         'change',
     ]);
 
+    const collapseBoxRef = ref();
     const isLoading = ref(false);
     const tableData = shallowRef([]);
     const diffMap = shallowRef({});
@@ -163,7 +168,7 @@
             isInnerChange = false;
             return;
         }
-        
+
         if (props.data.length > 0) {
             fetchData();
         } else {
@@ -177,7 +182,7 @@
         invalidHostList.value = getInvalidHostList(props.data, validHostList.value);
         removedHostList.value = getRemoveHostList(props.data, context.originalValue);
         diffMap.value = getHostDiffMap(props.data, context.originalValue, invalidHostList.value);
-        
+
         hostIpRepeatMap.value = getRepeatIpHostMap(validHostList.value);
 
         const {
@@ -256,7 +261,7 @@
         validHostList.value = newValidHostList;
         triggerChange();
     };
-    
+
     // 清除所有主机
     const handleRemoveAll = () => {
         resultList.value = [];
@@ -265,12 +270,16 @@
     };
 
     defineExpose({
+        // 所有主机
+        getHostList () {
+            return [...validHostList.value];
+        },
         // 所有 IP 列表
         getHostIpList () {
             return validHostList.value.map(item => item[hostRenderKey.value]);
         },
         // 异常 IP 列表
-        getNotAlivelHostIpList () {
+        getAbnormalHostIpList () {
             const result = validHostList.value.reduce((result, item) => {
                 if (item.alive !== 1) {
                     result.push(item[hostRenderKey.value]);
@@ -284,8 +293,15 @@
             });
             return result;
         },
+        // 返回完整的渲染数据，用与搜索
+        getTableData () {
+            return tableData.value;
+        },
         refresh () {
             fetchData();
+        },
+        collapseToggle (toggle) {
+            collapseBoxRef.value.toggle(toggle);
         },
     });
 </script>

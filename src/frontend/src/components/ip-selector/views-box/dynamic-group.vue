@@ -2,7 +2,9 @@
     <div
         v-bkloading="{ isLoading }"
         class="ip-selector-view-dynamic-group">
-        <collapse-box>
+        <collapse-box
+            ref="collapseBoxRef"
+            name="dynamicGroup">
             <template #title>
                 <span style="font-weight: bold;">【动态分组】</span>
                 <span>
@@ -58,7 +60,7 @@
                             text
                             theme="primary"
                             @click.stop="handleRemove(row)">
-                            删除
+                            移除
                         </bk-button>
                     </td>
                 </tr>
@@ -80,7 +82,8 @@
             :title="`【${selectedDynamicGroup.name}】动态分组主机预览`"
             :width="dialogWidth">
             <host-list
-                :dynamic-group="selectedDynamicGroup" />
+                :dynamic-group="selectedDynamicGroup"
+                :is-show="isShowHostList" />
             <template #footer>
                 <bk-button
                     theme="primary"
@@ -112,7 +115,7 @@
     } from '../utils';
 
     import RenderAgentStatistics from './components/agent-statistics.vue';
-    import CollapseBox from './components/collapse-box/index.vue';
+    import CollapseBox from './components/collapse-box.vue';
     import HostList from './components/dynamic-group-host-list.vue';
 
     const props = defineProps({
@@ -123,6 +126,7 @@
     });
     const emits = defineEmits(['change']);
 
+    const collapseBoxRef = ref();
     const isLoading = ref(false);
     const isAgentStatisticsLoading = ref(false);
     const tableData = shallowRef([]);
@@ -242,7 +246,7 @@
         }
         triggerChange();
     };
-    
+
     // 移除所有
     const handleRemoveAll = () => {
         resultList.value = [];
@@ -263,6 +267,9 @@
     defineExpose({
         refresh () {
             fetchData();
+        },
+        collapseToggle (toggle) {
+            collapseBoxRef.value.toggle(toggle);
         },
     });
 </script>

@@ -125,7 +125,7 @@
                     :value="searchText"
                     @change="handleHostSearch" />
             </div>
-            
+
             <!-- <server-panel
                     v-show="isShowServerPanel"
                     ref="serverPanel"
@@ -296,7 +296,7 @@
                     }
                 }
             }
-            
+
             this.rules = [
                 {
                     validator: () => {
@@ -371,29 +371,27 @@
                     this.messageWarn(I18n.t('你还未选择主机'));
                     return;
                 }
-                
+
                 execCopy(allIP.join('\n'), `${I18n.t('复制成功')}（${allIP.length}${I18n.t('个IP')}）`);
             },
             /**
              * @desc 复制所有异常主机
              */
             handleCopyFail () {
-                const abnormalHostIpList = this.$refs.ipSelector.getNotAlivelHostIpList();
+                const abnormalHostIpList = this.$refs.ipSelector.getAbnormalHostIpList();
                 if (abnormalHostIpList.length < 1) {
                     this.messageWarn(I18n.t('暂无异常主机'));
                     return;
                 }
-                
+
                 execCopy(abnormalHostIpList.join('\n'), `${I18n.t('复制成功')}（${abnormalHostIpList.length}${I18n.t('个IP')}）`);
             },
             /**
              * @desc 复制所有主机数据
              */
             handleClearAll () {
-                const { hostNodeInfo } = new TaskHostNodeModel({});
-                this.localHost = Object.freeze(hostNodeInfo);
+                this.$refs.ipSelector.resetValue();
                 this.messageSuccess(I18n.t('清空成功'));
-                this.triggerChange();
             },
             /**
              * @desc 刷新所有主机的状态信息
@@ -434,7 +432,7 @@
     .task-step-execute-target {
         &.only-host {
             .ip-search {
-                width: 620px;
+                width: 500px;
             }
         }
 

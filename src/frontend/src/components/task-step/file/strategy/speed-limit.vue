@@ -38,6 +38,8 @@
                     <bk-input
                         v-show="enabled"
                         class="speed-limit-input"
+                        :min="0"
+                        type="number"
                         :value="formData[field]"
                         @change="handleChange">
                         <template slot="append">
@@ -102,7 +104,7 @@
         },
         created () {
             this.speedLimitTipsConfig = {
-                allowHtml: true,
+                allowHTML: true,
                 width: '325px',
                 theme: 'light',
                 trigger: 'mouseenter',

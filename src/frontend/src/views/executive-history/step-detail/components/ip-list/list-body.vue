@@ -47,13 +47,19 @@
                 :class="{
                     active: selectRow === item.key,
                 }"
+                :data-id="item.key"
                 @click="handleSelect(item)">
                 <td
                     v-for="(showKey, colIndex) in showColumns"
                     :key="showKey"
                     :class="colIndex === 0 && item.result">
                     <div class="cell-text">
-                        {{ item[showKey] || '--' }}
+                        <template v-if="showKey === 'exitCode'">
+                            {{ item[showKey] }}
+                        </template>
+                        <template v-else>
+                            {{ item[showKey] || '--' }}
+                        </template>
                     </div>
                 </td>
                 <td class="active-flag">
@@ -119,7 +125,7 @@
                     $parentEle = $parentEle.parentNode;
                 }
             };
-            
+
             document.addEventListener('click', focusCallbacks);
             document.addEventListener('keydown', this.handleKeyDownSelect);
             this.$once('hook:beforeDestroy', () => {

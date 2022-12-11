@@ -40,6 +40,8 @@ public class HeartBeatReq {
     Long id;
     @ApiModelProperty(value = "名称")
     String name;
+    @ApiModelProperty(value = "标签列表")
+    List<String> tagList;
     @ApiModelProperty(value = "业务ID", required = true)
     Long appId;
     @ApiModelProperty(value = "密钥", required = true)
@@ -50,6 +52,8 @@ public class HeartBeatReq {
     Integer accessPort;
     @ApiModelProperty(value = "worker所在云区域Id", required = true)
     Long cloudAreaId;
+    @ApiModelProperty(value = "worker的内网IP协议", required = true)
+    String innerIpProtocol;
     @ApiModelProperty(value = "worker的内网IP", required = true)
     String innerIp;
     @ApiModelProperty(value = "能力标签列表")
@@ -80,6 +84,7 @@ public class HeartBeatReq {
             ", accessHost='" + accessHost + '\'' +
             ", accessPort=" + accessPort +
             ", cloudAreaId=" + cloudAreaId +
+            ", innerIpProtocol='" + innerIpProtocol + '\'' +
             ", innerIp='" + innerIp + '\'' +
             ", abilityTagList=" + abilityTagList +
             ", cpuOverload=" + cpuOverload +

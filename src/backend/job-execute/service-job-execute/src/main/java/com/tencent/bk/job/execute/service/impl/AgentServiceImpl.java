@@ -39,11 +39,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -114,18 +117,111 @@ public class AgentServiceImpl implements AgentService {
                 }
                 physicalMachineMultiIp = sj.toString();
             }
-            List<String> cloudIpList = IpUtils.buildCloudIpListByMultiIp(
-                (long) Consts.DEFAULT_CLOUD_ID,
-                physicalMachineMultiIp
-            );
-
-            String agentBindIp = agentStateClient.chooseOneAgentIdPreferAlive(cloudIpList);
-            log.info("Local agent bind ip is {}", agentBindIp);
-            ServiceHostDTO host = hostService.getHost(HostDTO.fromCloudIp(agentBindIp));
-            HostDTO hostDTO = HostDTO.fromHostIdOrCloudIp(host.getHostId(), agentBindIp);
-            hostDTO.setAgentId(hostDTO.getFinalAgentId());
-            return hostDTO;
+            ServiceHostDTO host;
+            if (physicalMachineMultiIp.contains(":")) {
+                // IPv6地址
+                // 首先转为完整无压缩格式
+                physicalMachineMultiIp = IpUtils.getFullIpv6ByCompressedOne(physicalMachineMultiIp);
+                host = getServiceHostByMultiIpv6(physicalMachineMultiIp);
+            } else {
+                // IPv4地址
+                host = getServiceHostByMultiIpv4(physicalMachineMultiIp);
+            }
+            if (host == null) {
+                log.error("Invalid host for ip: {}", physicalMachineMultiIp);
+                return null;
+            }
+            return toHostDTO(host);
         }
+    }
+
+    private ServiceHostDTO getServiceHostByMultiIpv4(String multiIpv4) {
+        List<HostDTO> hostIps = buildHostIps((long) Consts.DEFAULT_CLOUD_ID, multiIpv4);
+        if (CollectionUtils.isEmpty(hostIps)) {
+            log.warn("Cannot find host by multiIpv4:{}", multiIpv4);
+            return null;
+        }
+        Map<HostDTO, ServiceHostDTO> map = hostService.batchGetHosts(hostIps);
+        ServiceHostDTO aliveHost = findOneAliveHost(map.values());
+        if (aliveHost == null) {
+            log.warn("Cannot find alive hosts, use first ip of {}", multiIpv4);
+            return map.get(hostIps.get(0));
+        }
+        return aliveHost;
+    }
+
+    private List<HostDTO> buildHostIps(Long cloudAreaId, String multiIpv4) {
+        if (StringUtils.isBlank(multiIpv4)) {
+            return Collections.emptyList();
+        }
+        List<HostDTO> hostIps = new ArrayList<>();
+        String[] ipArr = multiIpv4.trim().split("[,;]");
+        for (String ip : ipArr) {
+            hostIps.add(new HostDTO(cloudAreaId, ip));
+        }
+        return hostIps;
+    }
+
+    private ServiceHostDTO getServiceHostByMultiIpv6(String multiIpv6) {
+        if (StringUtils.isBlank(multiIpv6)) {
+            return null;
+        }
+        String[] ipv6Arr = multiIpv6.trim().split("[,;]");
+        List<ServiceHostDTO> hosts = new ArrayList<>();
+        for (String ipv6 : ipv6Arr) {
+            hosts.add(hostService.getHostByCloudIpv6(Consts.DEFAULT_CLOUD_ID, ipv6));
+        }
+        if (CollectionUtils.isEmpty(hosts)) {
+            log.warn("Cannot find host by multiIpv6:{}", multiIpv6);
+            return null;
+        }
+        ServiceHostDTO aliveHost = findOneAliveHost(hosts);
+        if (aliveHost == null) {
+            log.warn("Cannot find alive hosts, use first ip of {}", multiIpv6);
+            return hosts.get(0);
+        }
+        return aliveHost;
+    }
+
+    /**
+     * 从多个主机中找出Agent存活的一个
+     *
+     * @param serviceHosts 主机列表
+     * @return Agent存活的第一个主机或者Null
+     */
+    private ServiceHostDTO findOneAliveHost(Collection<ServiceHostDTO> serviceHosts) {
+        Map<String, ServiceHostDTO> agentIdToHostMap = new HashMap<>();
+
+        serviceHosts.forEach(serviceHost -> {
+            agentIdToHostMap.put(serviceHost.getFinalAgentId(), serviceHost);
+        });
+        Map<String, Boolean> agentStatusMap =
+            agentStateClient.batchGetAgentAliveStatus(new ArrayList<>(agentIdToHostMap.keySet()));
+
+        List<ServiceHostDTO> aliveHosts = new ArrayList<>();
+        agentStatusMap.forEach((agentId, status) -> {
+            if (status != null && status) {
+                aliveHosts.add(agentIdToHostMap.get(agentId));
+            }
+        });
+        if (CollectionUtils.isEmpty(aliveHosts)) {
+            return null;
+        } else if (aliveHosts.size() > 1) {
+            ServiceHostDTO choosedHost = aliveHosts.get(0);
+            log.warn("{} aliveHosts found, use {}", aliveHosts.size(), choosedHost);
+            return choosedHost;
+        }
+        return aliveHosts.get(0);
+    }
+
+    private HostDTO toHostDTO(ServiceHostDTO host) {
+        HostDTO result = new HostDTO();
+        result.setHostId(host.getHostId());
+        result.setBkCloudId(host.getCloudAreaId());
+        result.setIp(host.getIp());
+        result.setIpv6(host.getIpv6());
+        result.setAgentId(host.getFinalAgentId());
+        return result;
     }
 
     private Map<String, String> getMachineIP() {

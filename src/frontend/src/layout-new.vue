@@ -297,7 +297,6 @@
 
     const TOGGLE_CACHE = 'navigation_toggle_status';
 
-    let routerName = '';
     const routerGroup = ref('');
     const isFrameSideFixed = ref(localStorage.getItem(TOGGLE_CACHE) !== null);
     const isSideExpand = ref(false);
@@ -310,8 +309,6 @@
 
     watch(route, (currentRoute) => {
         routerTitle.value = (currentRoute.meta.title || currentRoute.meta.pageTitle);
-        routerName = currentRoute.name;
-
         // 确认路由分组
         const {
             matched,
@@ -326,7 +323,22 @@
     }, {
         immediate: true,
     });
-    
+
+     /**
+     * @desc 获取是否是admin用户
+     */
+     QueryGlobalSettingService.fetchAdminIdentity()
+        .then((result) => {
+            isAdmin.value = result;
+        });
+    /**
+     * @desc 获取系统基本配置
+     */
+    QueryGlobalSettingService.fetchJobConfig()
+        .then((data) => {
+            isEnableFeatureFileManage.value = data.ENABLE_FEATURE_FILE_MANAGE;
+        });
+
     /**
      * @desc 侧导航展开收起
      */
@@ -346,29 +358,17 @@
      * @param {String} routerName 跳转的路由名
      */
     const handleRouterChange = (localtionRouterName) => {
-        if (routerName === localtionRouterName) {
+        const nextRouter = router.resolve({
+            name: localtionRouterName,
+        });
+        if (nextRouter.route.path === route.value.path) {
             return;
         }
-        routerName = localtionRouterName;
         router.push({
-            name: routerName,
+            name: localtionRouterName,
         });
     };
-    /**
-     * @desc 获取是否是admin用户
-     */
-    QueryGlobalSettingService.fetchAdminIdentity()
-        .then((result) => {
-            isAdmin.value = result;
-        });
-    /**
-     * @desc 获取系统基本配置
-     */
-    QueryGlobalSettingService.fetchJobConfig()
-        .then((data) => {
-            isEnableFeatureFileManage.value = data.ENABLE_FEATURE_FILE_MANAGE;
-        });
-            
+
 </script>
 <style lang="postcss">
     #app {

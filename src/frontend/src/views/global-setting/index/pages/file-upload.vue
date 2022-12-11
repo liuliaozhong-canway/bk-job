@@ -36,7 +36,9 @@
                 </div>
                 <jb-form-item>
                     <div class="input-wraper">
-                        <bk-input v-model="info.amount" />
+                        <jb-input-number
+                            v-model="info.amount"
+                            :min="1" />
                         <bk-select
                             v-model="info.unit"
                             class="unit-item"
@@ -57,7 +59,7 @@
                     <bk-radio-group
                         v-model="info.restrictMode"
                         class="restrict-mode-radio"
-                        @change="handleRestSuffixError">
+                        @change="handleRestrictModeChange">
                         <bk-radio-button :value="-1">
                             {{ $t('setting.不限制') }}
                         </bk-radio-button>
@@ -73,10 +75,10 @@
                     <jb-form-item>
                         <bk-tag-input
                             :key="info.restrictMode"
-                            v-model="info.suffixList"
                             allow-create
                             has-delete-icon
-                            @change="handleRestSuffixError" />
+                            :value="info.suffixList"
+                            @change="handleSuffixChange" />
                     </jb-form-item>
                     <div
                         class="form-item-error"
@@ -96,6 +98,8 @@
     </div>
 </template>
 <script>
+    import _ from 'lodash';
+
     import GlobalSettingService from '@service/global-setting';
 
     import I18n from '@/i18n';
@@ -110,7 +114,7 @@
         const ruleMap = [];
         suffixList.forEach((rule) => {
             // . 开头，后面跟上不超过24个英文字符
-            if (rule.length > 25) {
+            if (!_.trim(rule) || rule.length > 25) {
                 lengthStack.push(rule);
                 return;
             }
@@ -183,8 +187,12 @@
                         this.isLoading = false;
                     });
             },
-            handleRestSuffixError () {
+            handleRestrictModeChange () {
                 this.suffixError = '';
+            },
+            handleSuffixChange (tagList) {
+                this.suffixError = '';
+                this.info.suffixList = tagList.map(tagItem => tagItem.replace(/ /g, ''));
             },
             /**
              * @desc 提交修改
@@ -198,7 +206,7 @@
                 } else {
                     this.suffixError = checkSuffixError(params.suffixList);
                 }
-                
+
                 if (this.suffixError) {
                     return;
                 }

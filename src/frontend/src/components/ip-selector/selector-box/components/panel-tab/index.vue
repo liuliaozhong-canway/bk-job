@@ -60,6 +60,7 @@
     </vuedraggable>
 </template>
 <script setup>
+    import _ from 'lodash';
     import {
         computed,
         ref,
@@ -91,7 +92,7 @@
         'update:value',
     ]);
 
-    const CUSTOM_SETTINGS_MODULE = Manager.nameStyle('ipSelectorPanelTab');
+    const CUSTOM_SETTINGS_MODULE = Manager.nameStyle(`ipSelectorPanelTab${Manager.config.version}`);
 
     const {
         unqiuePanelValue,
@@ -109,12 +110,19 @@
         if (data[CUSTOM_SETTINGS_MODULE]
             && data[CUSTOM_SETTINGS_MODULE].panelSortList) {
             const panelConfigMap = makeMap(panelList);
-            panelSortList.value = data[CUSTOM_SETTINGS_MODULE].panelSortList.reduce((result, item) => {
-                if (panelConfigMap[item]) {
-                    result.push(item);
-                }
-                return result;
-            }, []);
+
+            if (data[CUSTOM_SETTINGS_MODULE].panelSortList.length === panelSortList.value.length) {
+                const newPanelList = data[CUSTOM_SETTINGS_MODULE].panelSortList.reduce((result, item) => {
+                    if (panelConfigMap[item]) {
+                        result.push(item);
+                        delete panelConfigMap[item];
+                    }
+                    return result;
+                }, []);
+                newPanelList.push(_.uniq(...Object.keys(panelConfigMap)));
+
+                panelSortList.value = newPanelList;
+            }
         }
     })
     .finally(() => {

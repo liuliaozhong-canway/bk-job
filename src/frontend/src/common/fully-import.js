@@ -49,6 +49,7 @@ import JbDiff from '@components/jb-diff';
 import JbForm from '@components/jb-form';
 import JbFormItem from '@components/jb-form/item';
 import JbInput from '@components/jb-input';
+import jbInputNumber from '@components/jb-input-number';
 import JbPopoverConfirm from '@components/jb-popover-confirm';
 import JbRouterView from '@components/jb-router-view';
 import JbSideslider from '@components/jb-sideslider';
@@ -65,9 +66,45 @@ import 'bk-magic-vue/dist/bk-magic-vue.min.css';
 // import 'lib/ip-selector/styles/index.css';
 
 const IpSelector = createIpSelector({
+    version: '6',
     panelList: ['staticTopo', 'dynamicTopo', 'dynamicGroup', 'manualInput'],
     unqiuePanelValue: false,
     nameStyle: 'camelCase',
+    // hostTableCustomColumnList: [
+    //     {
+    //         key: 'a1',
+    //         label: '测试列一',
+    //         index: 3,
+    //         field: 'a1',
+    //         width: '100px',
+    //         renderHead: h => h('span', '测试列一header'),
+    //         renderCell: h => h('span', 'render a1'),
+    //     },
+    //     {
+    //         key: 'A2',
+    //         label: '测试列二',
+    //         field: 'A2',
+    //         index: 4,
+    //         width: '100px',
+    //         renderHead: h => h('span', '测试列二header'),
+    //         renderCell: h => h('span', 'render test1'),
+    //     },
+    // ],
+    // hostTableRenderColumnList: ['ip', 'alive', 'osName', 'ipv6', 'cloudArea'],
+    // hostMemuExtends: [
+    //     {
+    //         name: '复制更多一',
+    //         action: () => {
+    //             console.log('复制更多一');
+    //         },
+    //     },
+    //     {
+    //         name: '复制更多二',
+    //         action: () => {
+    //             console.log('复制更多二');
+    //         },
+    //     },
+    // ],
     fetchTopologyHostCount: HostManageService.fetchTopologyWithCount,
     fetchTopologyHostsNodes: HostManageService.fetchTopologyHost,
     fetchTopologyHostIdsNodes: HostManageService.fetchTopogyHostIdList,
@@ -88,8 +125,6 @@ const IpSelector = createIpSelector({
             bk_cmdb_static_topo_url: `${data.BK_CMDB_ROOT_URL}/#/business/${window.PROJECT_CONFIG.SCOPE_ID}/custom-query`,
         })),
 });
-
-console.dir(IpSelector);
 
 Vue.use(bkMagicVue);
 Vue.use(VueProgressBar, {
@@ -119,6 +154,7 @@ Vue.component('JbRouterView', JbRouterView);
 Vue.component('JbForm', JbForm);
 Vue.component('JbFormItem', JbFormItem);
 Vue.component('JbInput', JbInput);
+Vue.component('JbInputNumber', jbInputNumber);
 Vue.component('JbTextarea', JbTextarea);
 Vue.component('JbPopoverConfirm', JbPopoverConfirm);
 Vue.component('JbSideslider', JbSideslider);
