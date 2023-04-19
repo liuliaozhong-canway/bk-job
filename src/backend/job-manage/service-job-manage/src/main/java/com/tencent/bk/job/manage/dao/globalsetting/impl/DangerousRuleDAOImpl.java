@@ -230,7 +230,7 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
                     scriptType |= 1 << (type - 1);
                 }
             }
-            conditions.add(DSL.bitAnd(DSL.field(T.SCRIPT_TYPE), scriptType).greaterThan(0));
+            conditions.add(DSL.bitAnd(T.SCRIPT_TYPE, scriptType).greaterThan(0));
         }
         if (query.getAction() != null) {
             conditions.add(T.ACTION.in(query.getAction()));
