@@ -39,6 +39,7 @@ import com.tencent.bk.job.manage.service.CredentialService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -95,6 +96,7 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
     }
 
     @Override
+    @Transactional(rollbackFor = {Exception.class, Error.class})
     public Response<String> saveCredential(String username,
                                            AppResourceScope appResourceScope,
                                            String scopeType,
@@ -109,8 +111,11 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
-        return Response.buildSuccessResp(credentialService.saveCredential(username, appResourceScope.getAppId(),
-            createUpdateReq));
+        String id = credentialService.saveCredential(username, appResourceScope.getAppId(), createUpdateReq);
+        if (StringUtils.isBlank(createUpdateReq.getId())) {
+            ticketAuthService.registerTicket(username, id, createUpdateReq.getName());
+        }
+        return Response.buildSuccessResp(id);
     }
 
     @Override
