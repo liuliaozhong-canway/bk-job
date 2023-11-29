@@ -28,11 +28,25 @@ import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.util.Base64Util;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.MessageFormatter;
 
 import javax.crypto.Cipher;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
-import java.security.*;
+import java.security.GeneralSecurityException;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.Signature;
+import java.security.SignatureException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -116,9 +130,17 @@ public class RSAUtils {
         return (RSAPublicKey) KeyFactory.getInstance(KEY_ALGORITHM).generatePublic(new X509EncodedKeySpec(encoded));
     }
 
-    public static RSAPublicKey getPublicKey(String rsaPublicKeyBase64) throws IOException, GeneralSecurityException {
-        byte[] encoded = Base64.decodeBase64(getPermKey(rsaPublicKeyBase64));
-        return (RSAPublicKey) KeyFactory.getInstance(KEY_ALGORITHM).generatePublic(new X509EncodedKeySpec(encoded));
+    public static RSAPublicKey getPublicKey(String rsaPublicKeyBase64) throws RuntimeException {
+        try {
+            byte[] encoded = Base64.decodeBase64(getPermKey(rsaPublicKeyBase64));
+            return (RSAPublicKey) KeyFactory.getInstance(KEY_ALGORITHM).generatePublic(new X509EncodedKeySpec(encoded));
+        } catch (Exception e) {
+            String msg = MessageFormatter.arrayFormat(
+                "Fail to getPublicKey using {}, rsaPublicKeyBase64={}",
+                new Object[]{KEY_ALGORITHM, rsaPublicKeyBase64}
+            ).getMessage();
+            throw new RuntimeException(msg, e);
+        }
     }
 
     public static String sign(PrivateKey privateKey,
