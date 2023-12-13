@@ -206,9 +206,12 @@ build_backend_module () {
     echo '-------------------tmp'
     echo '删除前：'
     ls tmp
-    rm -rf tmp/*
+    echo '删除路径：${tmp_dir}'
+    rm -rf $tmp_dir
     echo '删除后:'
     ls tmp
+
+    # rm -rf tmp/*
 
     cp $BACKEND_DIR/release/$SERVICE-$VERSION.jar tmp/$SERVICE.jar
     cp backend/startup.sh backend/tini tmp/
@@ -226,9 +229,12 @@ build_migration_image(){
     echo '-------------------tmp'
     echo '删除前：'
     ls tmp
-    rm -rf tmp/*
+    echo '删除路径：${tmp_dir}'
+    rm -rf $tmp_dir
     echo '删除后:'
     ls tmp
+
+    # rm -rf tmp/*
 
     cp $BACKEND_DIR/release/upgrader-$VERSION.jar tmp/upgrader.jar
     cp migration/startup.sh tmp/
