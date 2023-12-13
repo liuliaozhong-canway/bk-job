@@ -205,11 +205,11 @@ build_backend_module () {
 
     echo '-------------------tmp'
     echo '删除前：'
-    ll tmp/
+    ls tmp
     rm -rf tmp/*
     echo '删除后:'
-    ll tmp/
-    
+    ls tmp
+
     cp $BACKEND_DIR/release/$SERVICE-$VERSION.jar tmp/$SERVICE.jar
     cp backend/startup.sh backend/tini tmp/
     docker build -f backend/backend.Dockerfile -t $REGISTRY/$SERVICE:$VERSION tmp --network=host
@@ -225,10 +225,10 @@ build_migration_image(){
 
     echo '-------------------tmp'
     echo '删除前：'
-    ll tmp/
+    ls tmp
     rm -rf tmp/*
     echo '删除后:'
-    ll tmp/
+    ls tmp
 
     cp $BACKEND_DIR/release/upgrader-$VERSION.jar tmp/upgrader.jar
     cp migration/startup.sh tmp/
