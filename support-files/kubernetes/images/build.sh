@@ -208,7 +208,7 @@ build_backend_module () {
     echo '删除前：'
     ls tmp
     echo '删除路径：$tmp_dir,  $current_dir'
-    rm -rf "$(dirname "$0")/tmp/*"
+    sudo rm -rf /tmp/*
     echo '删除后:'
     ls tmp
 
@@ -231,7 +231,7 @@ build_migration_image(){
     echo '删除前：'
     ls tmp
     echo '删除路径：$tmp_dir,  $current_dir'
-    rm -rf "$(dirname "$0")/tmp/*"
+    sudo rm -rf /tmp/*
     echo '删除后:'
     ls tmp
 
