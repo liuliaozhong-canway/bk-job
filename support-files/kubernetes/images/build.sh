@@ -208,8 +208,7 @@ build_backend_module () {
     echo '删除前：'
     ls tmp
     echo '删除路径：$tmp_dir,  $current_dir'
-    rm -rf $tmp_dir
-    rm -rf $current_dir/tmp/*
+    rm -rf "$(dirname "$0")/tmp/*"
     echo '删除后:'
     ls tmp
 
@@ -229,12 +228,10 @@ build_migration_image(){
     $BACKEND_DIR/gradlew -p $BACKEND_DIR clean :upgrader:build -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION
 
     echo '-------------------tmp'
-    current_dir=$(pwd)
     echo '删除前：'
     ls tmp
     echo '删除路径：$tmp_dir,  $current_dir'
-    rm -rf $tmp_dir
-    rm -rf $current_dir/tmp/*
+    rm -rf "$(dirname "$0")/tmp/*"
     echo '删除后:'
     ls tmp
 
