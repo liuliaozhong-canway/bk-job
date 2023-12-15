@@ -207,12 +207,13 @@ build_backend_module () {
     echo '删除前：'
     ls tmp
     sudo rm -rf tmp/*
+    sudo rm -rf $tmp_dir
     echo '删除后:'
     ls tmp
     echo '查看权限：'
     ls -l tmp
     echo '查看锁定情况:'
-    sudo lsof | grep '$tmp_dir'
+    # sudo lsof | grep '$tmp_dir'
 
     # rm -rf tmp/*
 
@@ -233,12 +234,13 @@ build_migration_image(){
     echo '删除前：'
     ls tmp
     sudo rm -rf tmp/*
+    sudo rm -rf $tmp_dir
     echo '删除后:'
     ls tmp
     echo '查看权限：'
     ls -l tmp
     echo '查看锁定情况:'
-    sudo lsof | grep '$tmp_dir'
+    # sudo lsof | grep '$tmp_dir'
 
     # rm -rf tmp/*
 
