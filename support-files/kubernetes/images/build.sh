@@ -204,12 +204,15 @@ build_backend_module () {
     fi
 
     echo '-------------------tmp'
-    current_dir=$(pwd)
     echo '删除前：'
     ls tmp
     sudo rm -rf tmp/*
     echo '删除后:'
     ls tmp
+    echo '查看权限：'
+    ls -l tmp
+    echo '查看锁定情况:'
+    sudo lsof | grep '$tmp_dir'
 
     # rm -rf tmp/*
 
@@ -227,12 +230,15 @@ build_migration_image(){
     $BACKEND_DIR/gradlew -p $BACKEND_DIR clean :upgrader:build -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION
 
     echo '-------------------tmp'
-    current_dir=$(pwd)
     echo '删除前：'
     ls tmp
     sudo rm -rf tmp/*
     echo '删除后:'
     ls tmp
+    echo '查看权限：'
+    ls -l tmp
+    echo '查看锁定情况:'
+    sudo lsof | grep '$tmp_dir'
 
     # rm -rf tmp/*
 
