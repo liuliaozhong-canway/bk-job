@@ -195,9 +195,6 @@ build_frontend_module () {
 
 # Build backend image
 build_backend_module () {
-    echo '查看锁定情况:'
-    sudo lsof | grep $tmp_dir
-
     SERVICE=$1
     log "Building ${SERVICE} image, version: ${VERSION}..."
     if [[ ${SERVICE} == "job-gateway" ]] ; then
@@ -206,13 +203,11 @@ build_backend_module () {
       $BACKEND_DIR/gradlew -p $BACKEND_DIR clean :$SERVICE:boot-$SERVICE:build -DassemblyMode=k8s -DmysqlURL=$MYSQL_URL -DmysqlUser=$MYSQL_USERNAME -DmysqlPasswd=$MYSQL_PASSWORD -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION
     fi
 
-    echo '查看锁定情况1:'
-    sudo lsof | grep $tmp_dir
     echo '-------------------tmp'
     echo '删除前：'
-    ls tmp
-    sudo rm -rf tmp/*
-    sudo rm -rf $tmp_dir
+    ls -h tmp
+    rm -rf tmp/*
+    #rm -rf $tmp_dir
     echo '删除后:'
     ls tmp
     echo '查看权限：'
@@ -231,19 +226,14 @@ build_backend_module () {
 
 # Build migration image
 build_migration_image(){
-    echo '查看锁定情况:'
-    sudo lsof | grep $tmp_dir
-
     log "Building migration image, version: ${VERSION}..."
     $BACKEND_DIR/gradlew -p $BACKEND_DIR clean :upgrader:build -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION
 
-    echo '查看锁定情况1:'
-    sudo lsof | grep $tmp_dir
     echo '-------------------tmp'
     echo '删除前：'
-    ls tmp
-    sudo rm -rf tmp/*
-    sudo rm -rf $tmp_dir
+    ls -h tmp
+    rm -rf tmp/*
+    #rm -rf $tmp_dir
     echo '删除后:'
     ls tmp
     echo '查看权限：'
