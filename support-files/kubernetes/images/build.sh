@@ -202,20 +202,7 @@ build_backend_module () {
     else
       $BACKEND_DIR/gradlew -p $BACKEND_DIR clean :$SERVICE:boot-$SERVICE:build -DassemblyMode=k8s -DmysqlURL=$MYSQL_URL -DmysqlUser=$MYSQL_USERNAME -DmysqlPasswd=$MYSQL_PASSWORD -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION
     fi
-
-    echo '-------------------tmp'
-    echo '删除前：'
-    ls -h tmp
     rm -rf tmp/*
-    #rm -rf $tmp_dir
-    echo '删除后:'
-    ls tmp
-    echo '查看权限：'
-    ls -l tmp
-
-
-    # rm -rf tmp/*
-
     cp $BACKEND_DIR/release/$SERVICE-$VERSION.jar tmp/$SERVICE.jar
     cp backend/startup.sh backend/tini tmp/
     docker build -f backend/backend.Dockerfile -t $REGISTRY/$SERVICE:$VERSION tmp --network=host
@@ -228,20 +215,7 @@ build_backend_module () {
 build_migration_image(){
     log "Building migration image, version: ${VERSION}..."
     $BACKEND_DIR/gradlew -p $BACKEND_DIR clean :upgrader:build -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION
-
-    echo '-------------------tmp'
-    echo '删除前：'
-    ls -h tmp
     rm -rf tmp/*
-    #rm -rf $tmp_dir
-    echo '删除后:'
-    ls tmp
-    echo '查看权限：'
-    ls -l tmp
-
-
-    # rm -rf tmp/*
-
     cp $BACKEND_DIR/release/upgrader-$VERSION.jar tmp/upgrader.jar
     cp migration/startup.sh tmp/
     cp migration/runUpgrader.sh tmp/
