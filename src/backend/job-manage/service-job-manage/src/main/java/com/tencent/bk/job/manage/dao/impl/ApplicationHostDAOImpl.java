@@ -1157,7 +1157,6 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     public long countAllHosts() {
         log.debug("countAllHosts");
         List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.APP_ID.notIn(EXCLUDE_APP_ID));
         return countHostByConditions(conditions);
     }
 
@@ -1282,6 +1281,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         List<Condition> conditions = new ArrayList<>();
         if (bizIds != null) {
             conditions.add(HostTopo.HOST_TOPO.APP_ID.in(bizIds));
+        } else {
+            conditions.add(HostTopo.HOST_TOPO.APP_ID.notIn(EXCLUDE_APP_ID));
         }
         var query = context.select(
             TABLE.IS_AGENT_ALIVE.as(HostStatusNumStatisticsDTO.KEY_AGENT_ALIVE),
