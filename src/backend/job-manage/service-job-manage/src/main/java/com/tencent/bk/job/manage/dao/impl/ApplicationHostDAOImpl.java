@@ -1292,7 +1292,9 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             .where(conditions)
             .groupBy(TABLE.IS_AGENT_ALIVE);
         val records = query.fetch();
+        log.info("查询主机状态sql:"+query.getSQL());
         List<HostStatusNumStatisticsDTO> countList = new ArrayList<>();
+        log.info("查询主机状态size:"+countList.size());
         if (records.size() > 0) {
             records.forEach(record -> {
                 HostStatusNumStatisticsDTO statisticsDTO = new HostStatusNumStatisticsDTO();
