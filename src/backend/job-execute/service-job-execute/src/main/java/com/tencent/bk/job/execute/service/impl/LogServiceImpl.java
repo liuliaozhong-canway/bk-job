@@ -152,7 +152,7 @@ public class LogServiceImpl implements LogService {
                           long stepInstanceId,
                           int executeCount,
                           Integer batch) {
-        InternalResponse resp = logResource.saveLogs(request);
+        InternalResponse resp = logServiceResourceClient.saveLogs(request);
         if (!resp.isSuccess()) {
             log.error("Batch write log content fail, stepInstanceId:{}, executeCount:{}, batch: {}",
                 stepInstanceId, executeCount, batch);
