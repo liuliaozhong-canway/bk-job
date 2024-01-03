@@ -48,7 +48,7 @@ public class ScheduledTasks {
     /**
      * 本地临时文件清理：1h/次
      */
-    @Scheduled(cron = "0 10 * * * ?")
+    @Scheduled(cron = "0 */5 * * * ?")
     public void localTmpFileCleanTask() {
         log.info(Thread.currentThread().getId() + ":localTmpFileCleanTask start");
         try {
