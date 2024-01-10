@@ -64,10 +64,10 @@ import java.util.stream.Collectors;
  * @since 23/12/2019 21:03
  */
 @Data
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class CronJobInfoDTO {
+public class CronJobInfoDTO extends EncryptEnableVariables {
     /**
      * 定时任务 ID
      */
@@ -117,11 +117,6 @@ public class CronJobInfoDTO {
      * 单次执行时间
      */
     private Long executeTime;
-
-    /**
-     * 变量值列表
-     */
-    private List<CronJobVariableDTO> variableValue;
 
     /**
      * 上次执行状态
@@ -399,7 +394,7 @@ public class CronJobInfoDTO {
             // 结束前通知
             notifyInfo.setTemplateCode(NotifyConsts.NOTIFY_TEMPLATE_CODE_BEFORE_CRON_JOB_END);
             variableMap.put("cron_type", "周期执行");
-            String cronRuleStr = cronJobInfo.getCronExpression().substring(2).replace("?", "*");
+            String cronRuleStr = CronExpressionUtil.fixExpressionForUser(cronJobInfo.getCronExpression());
             variableMap.put("cron_rule", cronRuleStr);
             triggerTime = cronJobInfo.getEndTime() - cronJobInfo.getNotifyOffset();
             variableMap.put("task.cron.repeat_freq", "周期执行");
@@ -450,7 +445,7 @@ public class CronJobInfoDTO {
         if (StringUtils.isNotBlank(cronJobInfo.getCronExpression())) {
             // 结束前通知
             variableMap.put("task.cron.type", "周期执行");
-            String cronRuleStr = cronJobInfo.getCronExpression().substring(2).replace("?", "*");
+            String cronRuleStr = CronExpressionUtil.fixExpressionForUser(cronJobInfo.getCronExpression());
             variableMap.put("task.cron.rule", cronRuleStr);
             variableMap.put("task.cron.repeat_freq", "周期执行");
             variableMap.put("task.cron.time_set", cronRuleStr);
@@ -488,7 +483,7 @@ public class CronJobInfoDTO {
         esbCronInfoResponse.setStatus(cronJobInfoDTO.getEnable() ? 1 : 0);
         if (StringUtils.isNotBlank(cronJobInfoDTO.getCronExpression())) {
             esbCronInfoResponse.setCronExpression(
-                cronJobInfoDTO.getCronExpression().substring(2).replace("?", "*"));
+                CronExpressionUtil.fixExpressionForUser(cronJobInfoDTO.getCronExpression()));
         }
         esbCronInfoResponse.setCreator(cronJobInfoDTO.getCreator());
         esbCronInfoResponse.setCreateTime(cronJobInfoDTO.getCreateTime());
