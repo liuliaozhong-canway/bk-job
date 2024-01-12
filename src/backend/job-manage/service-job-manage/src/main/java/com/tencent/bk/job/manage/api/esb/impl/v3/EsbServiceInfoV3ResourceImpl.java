@@ -24,20 +24,23 @@
 
 package com.tencent.bk.job.manage.api.esb.impl.v3;
 
+import com.tencent.bk.job.common.constant.ProfileEnum;
 import com.tencent.bk.job.common.discovery.ServiceInfoProvider;
 import com.tencent.bk.job.common.discovery.model.ServiceInstanceInfoDTO;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.util.CompareUtil;
 import com.tencent.bk.job.manage.api.esb.v3.EsbServiceInfoV3Resource;
-import com.tencent.bk.job.manage.common.util.VersionComparatorUtil;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbServiceVersionV3DTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RestController
 @Slf4j
+@Profile("!" + ProfileEnum.Constants.TEST)
 public class EsbServiceInfoV3ResourceImpl implements EsbServiceInfoV3Resource {
 
     private final ServiceInfoProvider serviceInfoProvider;
@@ -58,17 +61,20 @@ public class EsbServiceInfoV3ResourceImpl implements EsbServiceInfoV3Resource {
         return EsbResp.buildSuccessResp(esbServiceVersionV3DTO);
     }
 
-    public static ServiceInstanceInfoDTO findLatestVersionInstance(List<ServiceInstanceInfoDTO> instanceInfoDTOList) {
+    private static ServiceInstanceInfoDTO findLatestVersionInstance(List<ServiceInstanceInfoDTO> instanceInfoDTOList) {
         if (instanceInfoDTOList == null || instanceInfoDTOList.isEmpty()) {
             return null;
         }
-        ServiceInstanceInfoDTO latestInstance = null;
-        VersionComparatorUtil latestComparator = null;
-        for (ServiceInstanceInfoDTO instance : instanceInfoDTOList) {
-            VersionComparatorUtil currentComparator = new VersionComparatorUtil(instance.getVersion());
-            if (latestInstance == null || latestComparator.compareTo(currentComparator) < 0) {
-                latestInstance = instance;
-                latestComparator = currentComparator;
+
+        ServiceInstanceInfoDTO latestInstance = instanceInfoDTOList.get(0);
+        String latestVersion = latestInstance.getVersion();
+
+        for (int i = 1; i < instanceInfoDTOList.size(); i++) {
+            ServiceInstanceInfoDTO currentInstance = instanceInfoDTOList.get(i);
+            String currentVersion = currentInstance.getVersion();
+            if (CompareUtil.compareVersion(currentVersion, latestVersion) > 0) {
+                latestInstance = currentInstance;
+                latestVersion = currentVersion;
             }
         }
         return latestInstance;
