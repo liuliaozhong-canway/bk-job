@@ -1,5 +1,3 @@
-package com.tencent.bk.job.crontab.model.esb.v3.request;
-
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
@@ -23,6 +21,7 @@ package com.tencent.bk.job.crontab.model.esb.v3.request;
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
+package com.tencent.bk.job.crontab.model.esb.v3.request;
 
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import io.swagger.annotations.ApiModel;
@@ -30,7 +29,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 @Data

@@ -345,6 +345,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
     public EsbResp deleteCron(String username,
                               String appCode,
                               EsbDeleteCronV3Request request) {
+        request.fillAppResourceScope(appScopeMappingService);
         if (cronJobService.deleteCronJobInfo(request.getAppId(), request.getId())) {
             return EsbResp.buildSuccessResp(null);
         }
