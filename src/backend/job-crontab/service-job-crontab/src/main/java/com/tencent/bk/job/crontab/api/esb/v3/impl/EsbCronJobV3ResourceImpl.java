@@ -49,6 +49,7 @@ import com.tencent.bk.job.crontab.common.constants.CronStatusEnum;
 import com.tencent.bk.job.crontab.exception.TaskExecuteAuthFailedException;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobVariableDTO;
+import com.tencent.bk.job.crontab.model.esb.v3.request.EsbDeleteCronV3Request;
 import com.tencent.bk.job.crontab.model.esb.v3.request.EsbGetCronDetailV3Request;
 import com.tencent.bk.job.crontab.model.esb.v3.request.EsbGetCronListV3Request;
 import com.tencent.bk.job.crontab.model.esb.v3.request.EsbSaveCronV3Request;
@@ -337,6 +338,17 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
         } else {
             throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);
         }
+    }
+
+    @Override
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_delete_cron"})
+    public EsbResp deleteCron(String username,
+                              String appCode,
+                              EsbDeleteCronV3Request request) {
+        if (cronJobService.deleteCronJobInfo(request.getAppId(), request.getId())) {
+            return EsbResp.buildSuccessResp(null);
+        }
+        return EsbResp.buildCommonFailResp(ErrorCode.DELETE_CRON_FAILED);
     }
 
     private void checkRequest(EsbSaveCronV3Request request) {
