@@ -41,7 +41,16 @@ import org.springframework.web.bind.annotation.RestController;
 @EsbAPI
 public interface EsbServiceInfoV3Resource {
 
+    @GetMapping("/get_latest_service_version")
+    EsbResp<EsbServiceVersionV3DTO> getLatestServiceVersion(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode
+    );
+
     @PostMapping("/get_latest_service_version")
-    EsbResp<EsbServiceVersionV3DTO> getLatestServiceVersion();
+    EsbResp<EsbServiceVersionV3DTO> getLatestServiceVersionUsingPost(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode
+    );
 
 }

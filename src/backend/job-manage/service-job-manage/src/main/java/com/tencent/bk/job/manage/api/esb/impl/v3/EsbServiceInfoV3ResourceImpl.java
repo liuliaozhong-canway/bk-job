@@ -51,7 +51,13 @@ public class EsbServiceInfoV3ResourceImpl implements EsbServiceInfoV3Resource {
     }
 
     @Override
-    public EsbResp<EsbServiceVersionV3DTO> getLatestServiceVersion() {
+    public EsbResp<EsbServiceVersionV3DTO> getLatestServiceVersion(String username, String appCode) {
+        return getLatestServiceVersionUsingPost(username, appCode);
+    }
+
+    @Override
+    public EsbResp<EsbServiceVersionV3DTO> getLatestServiceVersionUsingPost(String username,
+                                                                            String appCode) {
         List<ServiceInstanceInfoDTO> instanceInfoDTOList = serviceInfoProvider.listServiceInfo();
         ServiceInstanceInfoDTO latestVersionInstance = findLatestVersionInstance(instanceInfoDTOList);
         EsbServiceVersionV3DTO esbServiceVersionV3DTO = new EsbServiceVersionV3DTO();
