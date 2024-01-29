@@ -70,7 +70,7 @@ public class ServiceScriptLogDTO {
      * 日志大小 - 字节
      */
     @ApiModelProperty("日志大小 - 字节")
-    private Integer logSize;
+    private Integer logSize = 0;
 
     /**
      * 日志内容

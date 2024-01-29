@@ -129,6 +129,8 @@ public class LogServiceImpl implements LogService {
 
         for (ServiceScriptLogDTO scriptLog : scriptLogs) {
             ServiceHostLogDTO hostLogDTO = buildServiceLogDTO(stepInstanceId, executeCount, batch, scriptLog);
+            log.info("scriptLog.getLogSize()="+scriptLog.getLogSize()+
+                ", requestContentSizeThreshold="+requestContentSizeThreshold);
             int logSize = scriptLog.getLogSize();
             if (accumulatedSize + logSize > requestContentSizeThreshold) {
                 // 当达到阈值，保存当前积累的logs集合
