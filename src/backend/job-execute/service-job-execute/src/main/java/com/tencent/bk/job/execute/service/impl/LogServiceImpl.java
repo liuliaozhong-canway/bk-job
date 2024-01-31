@@ -83,6 +83,9 @@ public class LogServiceImpl implements LogService {
     @Value("${job.execute.scriptLog.requestContentSizeThreshold:134217728}")
     private int requestContentSizeThreshold;
 
+    // MB转换为字节
+    private final int _requestContentSizeThreshold = requestContentSizeThreshold * 1024 * 1024;
+
 
     @Autowired
     public LogServiceImpl(LogServiceResourceClient logServiceResourceClient,
@@ -130,10 +133,10 @@ public class LogServiceImpl implements LogService {
         for (ServiceScriptLogDTO scriptLog : scriptLogs) {
             ServiceHostLogDTO hostLogDTO = buildServiceLogDTO(stepInstanceId, executeCount, batch, scriptLog);
             log.info("scriptLog.getLogSize()="+scriptLog.getLogSize()+
-                ", requestContentSizeThreshold="+requestContentSizeThreshold);
+                ", _requestContentSizeThreshold="+_requestContentSizeThreshold);
             logs.add(hostLogDTO);
             accumulatedSize += scriptLog.getLogSize();;
-            if (accumulatedSize > requestContentSizeThreshold) {
+            if (accumulatedSize > _requestContentSizeThreshold) {
                 // 当达到阈值，保存当前积累的logs集合
                 request.setLogs(logs);
                 saveLogs(request, stepInstanceId, executeCount, batch);
@@ -142,7 +145,7 @@ public class LogServiceImpl implements LogService {
                 if (log.isDebugEnabled()) {
                     log.debug("The current script log is too large, exceeding {}, and should be saved in batches, " +
                             "stepInstanceId:{}, executeCount:{}, batch: {}",
-                        requestContentSizeThreshold, stepInstanceId, executeCount, batch);
+                        _requestContentSizeThreshold, stepInstanceId, executeCount, batch);
                 }
             }
         }
