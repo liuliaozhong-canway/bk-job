@@ -84,8 +84,9 @@ public class LogServiceImpl implements LogService {
     private int requestContentSizeThreshold;
 
     // MB转换为字节
-    private final int _requestContentSizeThreshold = requestContentSizeThreshold * 1024 * 1024;
+    //private final int _requestContentSizeThreshold = requestContentSizeThreshold * 1024 * 1024;
 
+    private final int _requestContentSizeThreshold;
 
     @Autowired
     public LogServiceImpl(LogServiceResourceClient logServiceResourceClient,
@@ -98,6 +99,7 @@ public class LogServiceImpl implements LogService {
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.fileAgentTaskService = fileAgentTaskService;
         this.stepInstanceService = stepInstanceService;
+        this._requestContentSizeThreshold = requestContentSizeThreshold * 1024 * 1024;
     }
 
     @Override
@@ -133,7 +135,8 @@ public class LogServiceImpl implements LogService {
         for (ServiceScriptLogDTO scriptLog : scriptLogs) {
             ServiceHostLogDTO hostLogDTO = buildServiceLogDTO(stepInstanceId, executeCount, batch, scriptLog);
             log.info("scriptLog.getLogSize()="+scriptLog.getLogSize()+
-                ", _requestContentSizeThreshold="+_requestContentSizeThreshold);
+                ", _requestContentSizeThreshold="+_requestContentSizeThreshold+", requestContentSizeThreshold="
+                +requestContentSizeThreshold);
             logs.add(hostLogDTO);
             accumulatedSize += scriptLog.getLogSize();;
             if (accumulatedSize > _requestContentSizeThreshold) {
