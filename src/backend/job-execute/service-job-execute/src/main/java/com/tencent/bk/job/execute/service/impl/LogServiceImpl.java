@@ -59,6 +59,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -83,10 +84,7 @@ public class LogServiceImpl implements LogService {
     @Value("${job.execute.scriptLog.requestContentSizeThreshold:134217728}")
     private int requestContentSizeThreshold;
 
-    // MB转换为字节
-    //private final int _requestContentSizeThreshold = requestContentSizeThreshold * 1024 * 1024;
-
-    private final int _requestContentSizeThreshold;
+    private int _requestContentSizeThreshold;
 
     @Autowired
     public LogServiceImpl(LogServiceResourceClient logServiceResourceClient,
@@ -99,7 +97,15 @@ public class LogServiceImpl implements LogService {
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.fileAgentTaskService = fileAgentTaskService;
         this.stepInstanceService = stepInstanceService;
-        this._requestContentSizeThreshold = requestContentSizeThreshold * 1024 * 1024;
+        log.info("construct..._requestContentSizeThreshold="+_requestContentSizeThreshold+"" +
+            ", requestContentSizeThreshold="+requestContentSizeThreshold);
+    }
+
+    @PostConstruct
+    public void init() {
+        _requestContentSizeThreshold = requestContentSizeThreshold * 1024 * 1024;
+        log.info("init..._requestContentSizeThreshold="+_requestContentSizeThreshold+"" +
+            ", requestContentSizeThreshold="+requestContentSizeThreshold);
     }
 
     @Override
