@@ -95,6 +95,7 @@ public class BizEventWatcher extends AbstractCmdbResourceEventWatcher<BizEventDe
         } catch (NotFoundException e) {
             log.debug("cannot find app by scope:{}, need to create", newestApp.getScope());
         }
+        log.info("biz current watch event:{}", eventType);
         switch (eventType) {
             case ResourceWatchReq.EVENT_TYPE_CREATE:
             case ResourceWatchReq.EVENT_TYPE_UPDATE:
@@ -102,6 +103,7 @@ public class BizEventWatcher extends AbstractCmdbResourceEventWatcher<BizEventDe
                 break;
             case ResourceWatchReq.EVENT_TYPE_DELETE:
                 if (cachedApp != null) {
+                    log.info("delete db biz："+cachedApp.getId());
                     applicationService.deleteApp(cachedApp.getId());
                 } else {
                     log.info("ignore delete event of app not exist:{}", event);

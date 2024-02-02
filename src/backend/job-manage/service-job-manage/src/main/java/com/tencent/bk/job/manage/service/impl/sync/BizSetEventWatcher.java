@@ -59,6 +59,7 @@ public class BizSetEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetE
         ApplicationDTO cachedApp =
             applicationService.getAppByScopeIncludingDeleted(latestApp.getScope());
 
+        log.info("biz set current watch event:{}", eventType);
         switch (eventType) {
             case ResourceWatchReq.EVENT_TYPE_CREATE:
             case ResourceWatchReq.EVENT_TYPE_UPDATE:
