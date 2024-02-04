@@ -245,4 +245,9 @@ public interface CronJobService {
     boolean isExistAnyAppCronJob(Long appId);
 
     Integer countCronJob(Long appId, Boolean active, Boolean cron);
+
+    /**
+     * 通过业务id禁用定时任务
+     */
+    boolean disabledCronJobByAppId(Long appId);
 }

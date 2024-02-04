@@ -22,27 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-apply plugin: 'io.spring.dependency-management'
-dependencies {
-    api project(":commons:common-redis")
-    api project(":commons:common-web")
-    api project(':commons:common-security')
-    api project(":job-execute:api-job-execute")
-    api project(":job-manage:api-job-manage")
-    api project(":job-crontab:api-job-crontab")
-    api project(":job-crontab:model-job-crontab")
-    api project(":commons:cmdb-sdk")
+package com.tencent.bk.job.crontab.task;
 
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-jdbc")
-    implementation("org.springframework.boot:spring-boot-starter-jooq")
-    implementation(group: 'org.springframework.boot', name: 'spring-boot-starter-quartz')
-    implementation "org.apache.commons:commons-collections4"
-    api("org.springframework.cloud:spring-cloud-starter-sleuth")
-    implementation('org.springframework.cloud:spring-cloud-starter-openfeign')
-    implementation "ch.qos.logback:logback-core"
-    implementation "ch.qos.logback:logback-classic"
-    implementation "org.slf4j:slf4j-api"
-    implementation("com.cronutils:cron-utils")
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
+@Slf4j
+@Component("jobCrontabScheduledTasks")
+@EnableScheduling
+public class ScheduledTasks {
+
+    private final DisableCronJobWithBizNotExistTask disableCronJobWithBizNotExistTask;
+
+    @Autowired
+    public ScheduledTasks(DisableCronJobWithBizNotExistTask disableCronJobWithBizNotExistTask) {
+        this.disableCronJobWithBizNotExistTask = disableCronJobWithBizNotExistTask;
+    }
+
+    /**
+     * 每早上2点把已删除业务的定时任务禁用
+     */
+    // @Scheduled(cron = "0 0 2 * * ?")
+    @Scheduled(cron = "0 0/5 * * * ?")
+    public void disableCronJob() {
+        log.info(Thread.currentThread().getId() + ":disableCronJob start");
+        long start = System.currentTimeMillis();
+        try {
+            disableCronJobWithBizNotExistTask.execute();
+        } catch (Exception e) {
+            log.error("disableCronJob fail", e);
+        } finally {
+            log.info("disableCronJob end, duration={}ms", System.currentTimeMillis() - start);
+        }
+    }
 }

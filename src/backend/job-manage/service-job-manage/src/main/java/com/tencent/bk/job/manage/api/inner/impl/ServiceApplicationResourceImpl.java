@@ -149,4 +149,20 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
             appList.stream().map(this::convertToServiceApp).collect(Collectors.toList());
         return InternalResponse.buildSuccessResp(resultList);
     }
+
+    @Override
+    public InternalResponse<List<ServiceApplicationDTO>> listAllAppsByDeleted() {
+        List<ApplicationDTO> appList = applicationService.listAllApps();
+        if (CollectionUtils.isEmpty(appList)) {
+            InternalResponse.buildSuccessResp(appList);
+        }
+
+        appList = appList.stream()
+            .filter(ApplicationDTO::isDeleted)
+            .collect(Collectors.toList());
+
+        List<ServiceApplicationDTO> resultList =
+            appList.stream().map(this::convertToServiceApp).collect(Collectors.toList());
+        return InternalResponse.buildSuccessResp(resultList);
+    }
 }
