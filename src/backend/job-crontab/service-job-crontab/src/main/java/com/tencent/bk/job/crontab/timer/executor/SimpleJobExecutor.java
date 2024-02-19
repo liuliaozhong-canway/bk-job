@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.crontab.timer.executor;
 
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.crontab.constant.ExecuteStatusEnum;
 import com.tencent.bk.job.crontab.constant.NotificationPolicyEnum;
@@ -104,9 +105,15 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
         long scheduledFireTime = getScheduledFireTime(context).toEpochMilli();
 
         // 判断业务/业务集的存在性，如果不存在不执行任务
-        ServiceApplicationDTO serviceApplicationDTO = applicationResource.queryAppById(appId);
-        if (serviceApplicationDTO == null) {
-            log.warn("appId not exist,cron not execute! appId:{}, cronId:{}", appId, cronJobId);
+        try {
+            ServiceApplicationDTO serviceApplicationDTO = applicationResource.queryAppById(appId);
+            if (serviceApplicationDTO == null) {
+                log.warn("appId not exist, cron not execute! appId:{}, cronId:{}", appId, cronJobId);
+                return;
+            }
+        } catch (NotFoundException e) {
+            log.error("Error occurred while querying app by id,cron not execute! appId:{}, cronId:{}",
+                appId, cronJobId, e);
             return;
         }
 

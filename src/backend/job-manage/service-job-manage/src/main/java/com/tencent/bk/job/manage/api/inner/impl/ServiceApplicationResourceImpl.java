@@ -152,14 +152,10 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
 
     @Override
     public InternalResponse<List<ServiceApplicationDTO>> listAllAppsByDeleted() {
-        List<ApplicationDTO> appList = applicationService.listAllApps();
+        List<ApplicationDTO> appList = applicationService.listAllDeletedApps();
         if (CollectionUtils.isEmpty(appList)) {
             InternalResponse.buildSuccessResp(appList);
         }
-
-        appList = appList.stream()
-            .filter(ApplicationDTO::isDeleted)
-            .collect(Collectors.toList());
 
         List<ServiceApplicationDTO> resultList =
             appList.stream().map(this::convertToServiceApp).collect(Collectors.toList());

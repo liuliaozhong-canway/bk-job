@@ -145,6 +145,13 @@ public interface ApplicationService {
     List<ApplicationDTO> listAllApps();
 
     /**
+     * 获取作业平台所有已删除的业务
+     *
+     * @return 业务列表
+     */
+    List<ApplicationDTO> listAllDeletedApps();
+
+    /**
      * 创建业务
      *
      * @param application 业务
