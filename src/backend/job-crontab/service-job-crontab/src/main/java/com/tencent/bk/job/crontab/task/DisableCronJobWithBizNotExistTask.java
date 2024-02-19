@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.crontab.service.CronJobService;
 import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
@@ -40,7 +41,11 @@ import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.sleuth.ScopedSpan;
+import org.springframework.cloud.sleuth.Span;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -62,6 +67,8 @@ public class DisableCronJobWithBizNotExistTask {
     private final IBizSetCmdbClient bizSetCmdbClient;
     private final CronJobService cronJobService;
     private final ServiceApplicationResource serviceApplicationResource;
+    private final Tracer tracer;
+
 
     @Value("${job.crontab.disableCron.enabled:true}")
     private Boolean enable;
@@ -70,12 +77,15 @@ public class DisableCronJobWithBizNotExistTask {
                                              IBizCmdbClient bizCmdbClient,
                                              IBizSetCmdbClient bizSetCmdbClient,
                                              CronJobService cronJobService,
-                                             ServiceApplicationResource serviceApplicationResource){
+                                             ServiceApplicationResource serviceApplicationResource,
+                                             Tracer tracer){
         this.redisTemplate = redisTemplate;
         this.bizCmdbClient = bizCmdbClient;
         this.bizSetCmdbClient = bizSetCmdbClient;
         this.cronJobService = cronJobService;
         this.serviceApplicationResource = serviceApplicationResource;
+        this.tracer = tracer;
+
     }
 
     public boolean execute() {
@@ -112,6 +122,13 @@ public class DisableCronJobWithBizNotExistTask {
         disableCronJobRedisKeyHeartBeatThread.setName("disableCronJobRedisKeyHeartBeatThread");
         disableCronJobRedisKeyHeartBeatThread.start();
         try {
+            if (StringUtils.isEmpty(JobContextUtil.getRequestId())) {
+                log.warn("requestId is null");
+                Span span = tracer.currentSpan();
+                String traceId = span.context().traceId();
+                log.info("current requestId = {}", traceId);
+                JobContextUtil.setRequestId(traceId);
+            }
             disableCronJob();
             return true;
         } catch (Throwable t) {
