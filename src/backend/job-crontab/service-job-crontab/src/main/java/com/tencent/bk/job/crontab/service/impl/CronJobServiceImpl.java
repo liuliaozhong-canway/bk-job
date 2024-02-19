@@ -758,7 +758,7 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     @Override
-    @Transactional(value = "jobCrontabTransactionManager", rollbackFor = {Throwable.class})
+    @Transactional(rollbackFor = {Throwable.class})
     public boolean disabledCronJobByAppId(Long appId) {
         CronJobInfoDTO cronJobInfoDTO = new CronJobInfoDTO();
         cronJobInfoDTO.setAppId(appId);

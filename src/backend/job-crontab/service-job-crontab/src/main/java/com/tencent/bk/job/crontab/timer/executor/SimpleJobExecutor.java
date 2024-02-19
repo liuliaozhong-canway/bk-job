@@ -112,8 +112,8 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
                 return;
             }
         } catch (NotFoundException e) {
-            log.error("Error occurred while querying app by id,cron not execute! appId:{}, cronId:{}",
-                appId, cronJobId, e);
+            log.error("Error(biz or biz set not exist) occurred while querying app by id," +
+                    "cron not execute! appId:{}, cronId:{}",appId, cronJobId);
             return;
         }
 
