@@ -51,6 +51,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cloud.sleuth.Span;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
@@ -82,6 +84,7 @@ public class LogExportServiceImpl implements LogExportService {
     private final ArtifactoryConfig artifactoryConfig;
     private final LogExportConfig logExportConfig;
     private final ScriptAgentTaskService scriptAgentTaskService;
+    private final Tracer tracer;
 
     @Autowired
     public LogExportServiceImpl(LogService logService,
@@ -91,7 +94,8 @@ public class LogExportServiceImpl implements LogExportService {
                                 ArtifactoryConfig artifactoryConfig,
                                 LogExportConfig logExportConfig,
                                 ScriptAgentTaskService scriptAgentTaskService,
-                                @Qualifier("logExportExecutor") ExecutorService logExportExecutor) {
+                                @Qualifier("logExportExecutor") ExecutorService logExportExecutor,
+                                Tracer tracer) {
         this.logService = logService;
         this.redisTemplate = redisTemplate;
         this.taskInstanceService = taskInstanceService;
@@ -100,6 +104,7 @@ public class LogExportServiceImpl implements LogExportService {
         this.logExportConfig = logExportConfig;
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.logExportExecutor = logExportExecutor;
+        this.tracer = tracer;
     }
 
     @Override
@@ -124,12 +129,22 @@ public class LogExportServiceImpl implements LogExportService {
         if (isGetByHost) {
             doPackage(exportJobInfo, stepInstanceId, hostId, cloudIp, executeCount, logFileDir, logFileName);
         } else {
+            String requestId = JobContextUtil.getRequestId();
             logExportExecutor.execute(() -> {
                 log.debug("Begin log package process |{}", stepInstanceId);
-                log.info("requestId:{}", JobContextUtil.getRequestId());
+
+                Span currentSpan = tracer.currentSpan();
+                if (currentSpan == null) {
+                    currentSpan = tracer.nextSpan().start();
+                }
+                Tracer.SpanInScope spanInScope = tracer.withSpan(currentSpan);
+                String traceId = currentSpan.context().traceId();
+
+                log.info("requestId={},traceId={}", requestId, traceId);
+
                 try {
                     boolean lockResult = LockUtils.tryGetDistributedLock(exportJobInfo.getJobKey(),
-                        JobContextUtil.getRequestId(), 3600_000L);
+                        requestId, 3600_000L);
                     if (lockResult) {
                         log.debug("Acquire lock success! Begin process!|{}", stepInstanceId);
                         exportJobInfo.setStatus(LogExportStatusEnum.PROCESSING);
@@ -144,7 +159,7 @@ public class LogExportServiceImpl implements LogExportService {
                     log.error("Error while package log file!|{}|{}", stepInstanceId, executeCount, e);
                     markJobFailed(exportJobInfo);
                 } finally {
-                    LockUtils.releaseDistributedLock(exportJobInfo.getJobKey(), JobContextUtil.getRequestId());
+                    LockUtils.releaseDistributedLock(exportJobInfo.getJobKey(), requestId);
                     log.debug("Process finished!|{}|{}|{}", stepInstanceId, executeCount, logFileName);
                 }
             });
