@@ -132,16 +132,6 @@ public class LogExportServiceImpl implements LogExportService {
             String requestId = JobContextUtil.getRequestId();
             logExportExecutor.execute(() -> {
                 log.debug("Begin log package process |{}", stepInstanceId);
-
-                Span currentSpan = tracer.currentSpan();
-                if (currentSpan == null) {
-                    currentSpan = tracer.nextSpan().start();
-                }
-                Tracer.SpanInScope spanInScope = tracer.withSpan(currentSpan);
-                String traceId = currentSpan.context().traceId();
-
-                log.info("requestId={},traceId={}", requestId, traceId);
-
                 try {
                     boolean lockResult = LockUtils.tryGetDistributedLock(exportJobInfo.getJobKey(),
                         requestId, 3600_000L);
@@ -156,7 +146,7 @@ public class LogExportServiceImpl implements LogExportService {
                         log.error("Job already running!|{}|{}", appId, stepInstanceId);
                     }
                 } catch (Exception e) {
-                    log.error("Error while package log file!|{}|{}", stepInstanceId, executeCount, e);
+                    log.error("Error while package log file!|{}|{}|{}", stepInstanceId, executeCount, e);
                     markJobFailed(exportJobInfo);
                 } finally {
                     LockUtils.releaseDistributedLock(exportJobInfo.getJobKey(), requestId);
@@ -164,7 +154,6 @@ public class LogExportServiceImpl implements LogExportService {
                 }
             });
         }
-        log.info("Package log success.|{}|{}|{}", stepInstanceId, executeCount, logFileName);
         return exportJobInfo;
     }
 
@@ -234,6 +223,7 @@ public class LogExportServiceImpl implements LogExportService {
         if (watch.getTotalTimeMillis() > 10000L) {
             log.info("Export job execution log is slow, cost: {}", watch.prettyPrint());
         }
+        log.info("Package log success.|{}|{}|{}", stepInstanceId, executeCount, logFileName);
     }
 
     /**
