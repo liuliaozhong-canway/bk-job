@@ -123,14 +123,16 @@ public class LogExportServiceImpl implements LogExportService {
         if (isGetByHost) {
             doPackage(exportJobInfo, stepInstanceId, hostId, cloudIp, executeCount, logFileDir, logFileName);
         } else {
+            log.info("准备打包....");
             logExportExecutor.execute(() -> {
                 String requestId = UUID.randomUUID().toString();
-                log.debug("Begin log package process|{}", requestId);
+                log.info("进入打包线程{}|{}", stepInstanceId, requestId);
+                log.debug("Begin log package process |{}|{}", stepInstanceId, requestId);
                 try {
                     boolean lockResult = LockUtils.tryGetDistributedLock(exportJobInfo.getJobKey(), requestId,
                         3600_000L);
                     if (lockResult) {
-                        log.debug("Acquire lock success! Begin process!|{}", requestId);
+                        log.debug("Acquire lock success! Begin process!|{}|{}", stepInstanceId, requestId);
                         exportJobInfo.setStatus(LogExportStatusEnum.PROCESSING);
                         saveExportInfo(exportJobInfo);
 
@@ -188,6 +190,7 @@ public class LogExportServiceImpl implements LogExportService {
                            int executeCount,
                            String logFileDir,
                            String logFileName) {
+        log.info("在打包方法中...{}", stepInstanceId);
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
         boolean isGetByHost = hostId != null || StringUtils.isNotBlank(cloudIp);
         File logFile = new File(logFileDir + logFileName);
@@ -384,3 +387,4 @@ public class LogExportServiceImpl implements LogExportService {
         }
     }
 }
+
