@@ -40,6 +40,7 @@ import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.sleuth.Tracer;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -51,7 +52,7 @@ public class BizEventWatcher extends AbstractCmdbResourceEventWatcher<BizEventDe
 
     private final BizCmdbClient bizCmdbClient;
     private final ApplicationService applicationService;
-    private final ServiceCronJobResource serviceCronJobResource;
+    private ServiceCronJobResource serviceCronJobResource;
 
     private final AtomicBoolean bizWatchFlag = new AtomicBoolean(true);
 
@@ -60,11 +61,15 @@ public class BizEventWatcher extends AbstractCmdbResourceEventWatcher<BizEventDe
                            Tracer tracer,
                            CmdbEventSampler cmdbEventSampler,
                            BizCmdbClient bizCmdbClient,
-                           ApplicationService applicationService,
-                           ServiceCronJobResource serviceCronJobResource) {
+                           ApplicationService applicationService) {
         super("biz", redisTemplate, tracer, cmdbEventSampler);
         this.bizCmdbClient = bizCmdbClient;
         this.applicationService = applicationService;
+    }
+
+    @Autowired
+    @Lazy
+    public void setServiceCronJobResource(ServiceCronJobResource serviceCronJobResource) {
         this.serviceCronJobResource = serviceCronJobResource;
     }
 
