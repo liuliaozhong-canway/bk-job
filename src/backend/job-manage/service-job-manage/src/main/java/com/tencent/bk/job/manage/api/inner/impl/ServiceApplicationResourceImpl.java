@@ -208,7 +208,12 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
 
     @Override
     public InternalResponse<Boolean> existsAppById(Long appId) {
-        ApplicationDTO appInfo = applicationService.getAppByAppId(appId);
-        return InternalResponse.buildSuccessResp(appInfo != null);
+        try {
+            ApplicationDTO appInfo = applicationService.getAppByAppId(appId);
+            return InternalResponse.buildSuccessResp(appInfo != null);
+        } catch (NotFoundException e){
+            log.error("biz/bizSet not exist, appId={}", appId);
+            return InternalResponse.buildSuccessResp(false);
+        }
     }
 }
