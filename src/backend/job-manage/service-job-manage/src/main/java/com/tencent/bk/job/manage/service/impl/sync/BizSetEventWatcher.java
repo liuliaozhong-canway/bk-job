@@ -29,7 +29,6 @@ public class BizSetEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetE
     private final ApplicationService applicationService;
     private final BizSetService bizSetService;
     private final BizSetCmdbClient bizSetCmdbClient;
-    private ServiceCronJobResource serviceCronJobResource;
 
     @Autowired
     public BizSetEventWatcher(RedisTemplate<String, String> redisTemplate,
@@ -42,12 +41,6 @@ public class BizSetEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetE
         this.applicationService = applicationService;
         this.bizSetService = bizSetService;
         this.bizSetCmdbClient = bizSetCmdbClient;
-    }
-
-    @Autowired
-    @Lazy
-    public void setServiceCronJobResource(ServiceCronJobResource serviceCronJobResource) {
-        this.serviceCronJobResource = serviceCronJobResource;
     }
 
     @Override
@@ -100,9 +93,6 @@ public class BizSetEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetE
                 if (cachedApp != null) {
                     log.info("Delete app for bizSet, app: {}", cachedApp);
                     applicationService.deleteApp(cachedApp.getId());
-                    log.info("bizSet has been deleted from cmdb, cron job will be disabled. appId:{}",
-                        cachedApp.getId());
-                    serviceCronJobResource.disabledCronJobByAppId(cachedApp.getId());
                 }
                 break;
             default:

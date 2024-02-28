@@ -25,6 +25,7 @@
 package com.tencent.bk.job.crontab.timer.executor;
 
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.crontab.constant.ExecuteStatusEnum;
 import com.tencent.bk.job.crontab.constant.NotificationPolicyEnum;
@@ -104,16 +105,15 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
         long cronJobId = Long.parseLong(cronJobIdStr);
         long scheduledFireTime = getScheduledFireTime(context).toEpochMilli();
 
-        // 判断业务/业务集的存在性，如果不存在不执行任务
+        // 判断业务/业务集的存在性，如果不存在不执行定时任务
         try {
-            ServiceApplicationDTO serviceApplicationDTO = applicationResource.queryAppById(appId);
-            if (serviceApplicationDTO == null) {
-                log.warn("appId not exist, cron not execute! appId:{}, cronId:{}", appId, cronJobId);
+            if (!applicationResource.existsAppById(appId).getData()) {
+                log.warn("appId not exists, cron not execute! appId:{}, cronId:{}", appId, cronJobId);
                 return;
             }
-        } catch (NotFoundException e) {
-            log.error("Error(biz or biz set not exist) occurred while querying app by id," +
-                    "cron not execute! appId:{}, cronId:{}",appId, cronJobId);
+        } catch (ServiceException e) {
+            log.error("Error(biz or biz set not exists) occurred while querying app by id," +
+                "cron not execute! appId:{}, cronId:{}",appId, cronJobId);
             return;
         }
 

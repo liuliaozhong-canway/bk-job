@@ -402,6 +402,13 @@ public class CronJobDAOImpl implements CronJobDAO {
     }
 
     @Override
+    public List<Long> listCronJobIds(CronJobInfoDTO cronJobInfoDTO) {
+        List<Condition> conditions = buildConditionList(cronJobInfoDTO, null);
+        List<ULong> cronJobIds = context.select(TABLE.ID).from(TABLE).where(conditions).fetch(TABLE.ID);
+        return cronJobIds.stream().map(ULong::longValue).collect(Collectors.toList());
+    }
+
+    @Override
     public boolean checkCronJobName(long appId, long cronJobId, String name) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.APP_ID.equal(ULong.valueOf(appId)));

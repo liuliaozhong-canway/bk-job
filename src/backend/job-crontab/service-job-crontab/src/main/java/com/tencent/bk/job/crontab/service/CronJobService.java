@@ -249,5 +249,5 @@ public interface CronJobService {
     /**
      * 通过业务id禁用定时任务
      */
-    boolean disabledCronJobByAppId(Long appId);
+    boolean disableCronJobByAppId(Long appId);
 }

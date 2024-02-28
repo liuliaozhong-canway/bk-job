@@ -52,7 +52,6 @@ public class BizEventWatcher extends AbstractCmdbResourceEventWatcher<BizEventDe
 
     private final BizCmdbClient bizCmdbClient;
     private final ApplicationService applicationService;
-    private ServiceCronJobResource serviceCronJobResource;
 
     private final AtomicBoolean bizWatchFlag = new AtomicBoolean(true);
 
@@ -65,12 +64,6 @@ public class BizEventWatcher extends AbstractCmdbResourceEventWatcher<BizEventDe
         super("biz", redisTemplate, tracer, cmdbEventSampler);
         this.bizCmdbClient = bizCmdbClient;
         this.applicationService = applicationService;
-    }
-
-    @Autowired
-    @Lazy
-    public void setServiceCronJobResource(ServiceCronJobResource serviceCronJobResource) {
-        this.serviceCronJobResource = serviceCronJobResource;
     }
 
     public void setWatchFlag(boolean value) {
@@ -114,9 +107,6 @@ public class BizEventWatcher extends AbstractCmdbResourceEventWatcher<BizEventDe
                 if (cachedApp != null) {
                     log.info("delete db biz："+cachedApp.getId());
                     applicationService.deleteApp(cachedApp.getId());
-                    log.info("biz has been deleted from cmdb, cron job will be disabled. appId:{}",
-                        cachedApp.getId());
-                    serviceCronJobResource.disabledCronJobByAppId(cachedApp.getId());
                 } else {
                     log.info("ignore delete event of app not exist:{}", event);
                 }

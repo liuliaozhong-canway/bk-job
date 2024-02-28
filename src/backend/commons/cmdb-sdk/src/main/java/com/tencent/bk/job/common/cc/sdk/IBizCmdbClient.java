@@ -245,4 +245,12 @@ public interface IBizCmdbClient {
      * 监听CMDB业务事件
      */
     ResourceWatchResult<BizEventDetail> getAppEvents(Long startTime, String cursor);
+
+    /**
+     * 查询业务列表
+     *
+     * @param bizIds cmdb业务ID
+     * @return 业务
+     */
+    List<ApplicationDTO> ListBizAppByIds(List<Long> bizIds);
 }

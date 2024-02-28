@@ -35,11 +35,11 @@ import org.springframework.stereotype.Component;
 @EnableScheduling
 public class ScheduledTasks {
 
-    private final DisableCronJobWithBizNotExistTask disableCronJobWithBizNotExistTask;
+    private final DisableCronJobOfArchivedScopeTask disableCronJobOfArchivedScopeTask;
 
     @Autowired
-    public ScheduledTasks(DisableCronJobWithBizNotExistTask disableCronJobWithBizNotExistTask) {
-        this.disableCronJobWithBizNotExistTask = disableCronJobWithBizNotExistTask;
+    public ScheduledTasks(DisableCronJobOfArchivedScopeTask disableCronJobOfArchivedScopeTask) {
+        this.disableCronJobOfArchivedScopeTask = disableCronJobOfArchivedScopeTask;
     }
 
     /**
@@ -47,15 +47,15 @@ public class ScheduledTasks {
      */
     // @Scheduled(cron = "0 0 2 * * ?")
     @Scheduled(cron = "0 0/5 * * * ?")
-    public void disableCronJob() {
-        log.info(Thread.currentThread().getId() + ":disableCronJob start");
+    public void disableCronJobTask() {
+        log.info(Thread.currentThread().getId() + ":disableCronJobTask start");
         long start = System.currentTimeMillis();
         try {
-            disableCronJobWithBizNotExistTask.execute();
+            disableCronJobOfArchivedScopeTask.execute();
         } catch (Exception e) {
-            log.error("disableCronJob fail", e);
+            log.error("disableCronJobTask fail", e);
         } finally {
-            log.info("disableCronJob end, duration={}ms", System.currentTimeMillis() - start);
+            log.info("disableCronJobTask end, duration={}ms", System.currentTimeMillis() - start);
         }
     }
 }
