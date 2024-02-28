@@ -1376,11 +1376,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         filter.setRules(Collections.singletonList(rule));
         filter.setCondition(BizFilter.CONDITION_AND);
         req.setBizFilter(filter);
-
-        EsbResp<SearchAppResult> esbResp = requestCmdbApi(
-            SEARCH_BUSINESS,
-            null,
-            req,
+        EsbResp<SearchAppResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, SEARCH_BUSINESS, req,
             new TypeReference<EsbResp<SearchAppResult>>() {
             });
         SearchAppResult data = esbResp.getData();
