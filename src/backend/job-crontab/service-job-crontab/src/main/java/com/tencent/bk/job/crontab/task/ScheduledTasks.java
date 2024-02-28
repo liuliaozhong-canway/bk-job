@@ -24,11 +24,14 @@
 
 package com.tencent.bk.job.crontab.task;
 
+import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import java.util.UUID;
 
 @Slf4j
 @Component("jobCrontabScheduledTasks")
@@ -51,11 +54,13 @@ public class ScheduledTasks {
         log.info(Thread.currentThread().getId() + ":disableCronJobTask start");
         long start = System.currentTimeMillis();
         try {
+            JobContextUtil.setRequestId(UUID.randomUUID().toString());
             disableCronJobOfArchivedScopeTask.execute();
         } catch (Exception e) {
             log.error("disableCronJobTask fail", e);
         } finally {
             log.info("disableCronJobTask end, duration={}ms", System.currentTimeMillis() - start);
+            JobContextUtil.setRequestId(null);
         }
     }
 }
