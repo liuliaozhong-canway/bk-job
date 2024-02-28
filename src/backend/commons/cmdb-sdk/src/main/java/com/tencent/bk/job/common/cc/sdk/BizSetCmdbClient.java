@@ -352,6 +352,10 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
         filter.setRules(Collections.singletonList(bizSetIdRule));
         List<BizSetInfo> bizSetInfoList = searchBizSet(filter, 0, bizSetIds.size());
 
+        if (bizSetInfoList == null) {
+            return new ArrayList<>();
+        }
+
         bizSetInfoList.forEach(bizSetInfo -> {
             // 查询业务集下包含的子业务(全业务除外)
             BizSetScope scope = bizSetInfo.getScope();
