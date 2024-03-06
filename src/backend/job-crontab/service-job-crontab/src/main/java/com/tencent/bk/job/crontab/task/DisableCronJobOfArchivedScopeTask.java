@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -118,12 +119,20 @@ public class DisableCronJobOfArchivedScopeTask {
      * 禁用条件：1. 业务在作业平台中是软删除状态， 2. 查询配置平台业务接口，业务不在返回列表中
      */
     private void disableCronJobOfArchivedScope() {
-        List<Long> archivedAppIds = serviceApplicationResource.listAllAppIdOfArchivedScope().getData();;
+        List<Long> archivedAppIds = serviceApplicationResource.listAllAppIdOfArchivedScope().getData();
         log.info("finally find archived appIds={}", archivedAppIds);
+        List<Long> failedAppIds = new ArrayList<>();
         for (Long appId : archivedAppIds) {
-            cronJobService.disableCronJobByAppId(appId);
+            boolean result = cronJobService.disableCronJobByAppId(appId);
+            if (!result) {
+                failedAppIds.add(appId);
+            }
         }
-        log.info("cron job disabled successfully");
+        if (failedAppIds.isEmpty()) {
+            log.info("all cron jobs with archived apps have been successfully disabled.");
+        } else {
+            log.warn("failed to disable cron jobs for the following archived appIds: {}}", failedAppIds);
+        }
     }
 
 }

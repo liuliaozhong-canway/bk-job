@@ -1385,7 +1385,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         }
         List<BusinessInfoDTO> businessInfos = data.getInfo();
         if (businessInfos == null || businessInfos.isEmpty()) {
-            log.error("Query biz from cmdb through bizIds, return data is null, bizIdz={}", bizIds);
+            log.info("Query biz from cmdb through bizIds, return data is null, bizIdz={}", bizIds);
             return new ArrayList<>();
         }
         return convertToAppInfoList(businessInfos);
