@@ -35,12 +35,17 @@ import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.esb.v3.EsbCredentialV3Resource;
 import com.tencent.bk.job.manage.api.inner.ServiceCredentialResource;
 import com.tencent.bk.job.manage.common.consts.CredentialTypeEnum;
+import com.tencent.bk.job.manage.dao.CredentialDAO;
+import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateOrUpdateCredentialV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetCredentialDetailV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbCredentialSimpleInfoV3DTO;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbCredentialV3DTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceBasicCredentialDTO;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
@@ -51,12 +56,18 @@ import org.springframework.web.bind.annotation.RestController;
 public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
     private final ServiceCredentialResource credentialService;
     private final AppScopeMappingService appScopeMappingService;
+    private final CredentialDAO credentialDAO;
+    private final DSLContext dslContext;
 
     @Autowired
     public EsbCredentialResourceV3Impl(ServiceCredentialResource credentialService,
-                                       AppScopeMappingService appScopeMappingService) {
+                                       AppScopeMappingService appScopeMappingService,
+                                       CredentialDAO credentialDAO,
+                                       DSLContext dslContext) {
         this.credentialService = credentialService;
         this.appScopeMappingService = appScopeMappingService;
+        this.credentialDAO = credentialDAO;
+        this.dslContext = dslContext;
     }
 
     @Override
@@ -72,6 +83,32 @@ public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
         req.fillAppResourceScope(appScopeMappingService);
         checkUpdateParam(req);
         return saveCredential(req);
+    }
+
+    @Override
+    public EsbResp<EsbCredentialV3DTO> getCredentialDetail(
+        String username,
+        String appCode,
+        Long bizId,
+        String scopeType,
+        String scopeId,
+        String id) {
+        EsbGetCredentialDetailV3Req req = new EsbGetCredentialDetailV3Req();
+        req.setBizId(bizId);
+        req.setScopeType(scopeType);
+        req.setScopeId(scopeId);
+        req.setId(id);
+        req.fillAppResourceScope(appScopeMappingService);
+        return getCredentialDetailUsingPost(username, appCode, req);
+    }
+
+    @Override
+    public EsbResp<EsbCredentialV3DTO> getCredentialDetailUsingPost(
+        String username,
+        String appCode,
+        EsbGetCredentialDetailV3Req req) {
+        CredentialDTO credentialDTO = credentialDAO.getCredentialById(dslContext, req.getId());
+        return EsbResp.buildSuccessResp(credentialDTO.toEsbCredentialV3DTO());
     }
 
     private void checkCreateParam(EsbCreateOrUpdateCredentialV3Req req) {

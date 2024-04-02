@@ -1,12 +1,17 @@
 package com.tencent.bk.job.file_gateway.api.esb;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.esb.model.job.v3.EsbFileSourceDetailV3DTO;
+import com.tencent.bk.job.common.esb.model.job.v3.EsbFileSourceV3DTO;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.MissingParameterException;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.file_gateway.auth.FileSourceAuthService;
@@ -15,6 +20,7 @@ import com.tencent.bk.job.file_gateway.consts.WorkerSelectScopeEnum;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceTypeDTO;
 import com.tencent.bk.job.file_gateway.model.req.esb.v3.EsbCreateOrUpdateFileSourceV3Req;
+import com.tencent.bk.job.file_gateway.model.req.esb.v3.EsbGetFileSourceDetailV3Req;
 import com.tencent.bk.job.file_gateway.model.resp.esb.v3.EsbFileSourceSimpleInfoV3DTO;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
 import lombok.extern.slf4j.Slf4j;
@@ -71,6 +77,34 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         int affectedNum = fileSourceService.updateFileSourceById(appId, fileSourceDTO);
         log.info("{} fileSource updated", affectedNum);
         return EsbResp.buildSuccessResp(new EsbFileSourceSimpleInfoV3DTO(id));
+    }
+
+    @Override
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "get_file_source_detail"})
+    public EsbResp<EsbFileSourceDetailV3DTO> getFileSourceDetail(
+        String username,
+        String appCode,
+        Long bizId,
+        String scopeType,
+        String scopeId,
+        String code) {
+        EsbGetFileSourceDetailV3Req req = new EsbGetFileSourceDetailV3Req();
+        req.setBizId(bizId);
+        req.setScopeType(scopeType);
+        req.setScopeId(scopeId);
+        req.setCode(code);
+        req.fillAppResourceScope(appScopeMappingService);
+        return getFileSourceDetailUsingPost(username, appCode, req);
+    }
+
+    @Override
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "get_file_source_detail"})
+    public EsbResp<EsbFileSourceDetailV3DTO> getFileSourceDetailUsingPost(
+        String username,
+        String appCode,
+        EsbGetFileSourceDetailV3Req req) {
+        FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceByCode(req.getCode());
+        return EsbResp.buildSuccessResp(FileSourceDTO.toEsbFileSourceDetailV3DTO(fileSourceDTO));
     }
 
     private void checkCommonParam(EsbCreateOrUpdateFileSourceV3Req req) {
