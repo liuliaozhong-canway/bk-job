@@ -39,7 +39,8 @@ import org.springframework.web.bind.annotation.RestController;
 public interface ServiceFileSourceResource {
 
     @ApiOperation(value = "获取文件源ID", produces = "application/json")
-    @GetMapping("/service/fileSource/getFileSourceIdByCode/codes/{code}")
+    @GetMapping("/service/app/{appId}fileSource/getFileSourceIdByCode/codes/{code}")
     InternalResponse<Integer> getFileSourceIdByCode(
+        @ApiParam(value = "JOB业务ID", required = true) @PathVariable("appId") Long appId,
         @ApiParam(value = "文件源标识", required = true) @PathVariable("code") String code);
 }

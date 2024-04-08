@@ -250,7 +250,7 @@ public class EsbFastTransferFileV3ResourceImpl
         stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE.getValue());
         stepInstance.setFileTargetPath(request.getTargetPath());
         stepInstance.setFileTargetName(request.getTargetName());
-        stepInstance.setFileSourceList(convertFileSource(request.getFileSources()));
+        stepInstance.setFileSourceList(convertFileSource(request.getAppId(), request.getFileSources()));
         stepInstance.setAppId(request.getAppId());
         stepInstance.setTargetServers(convertToServersDTO(request.getTargetServer()));
         stepInstance.setOperator(request.getUserName());
@@ -276,7 +276,8 @@ public class EsbFastTransferFileV3ResourceImpl
         return stepInstance;
     }
 
-    private List<FileSourceDTO> convertFileSource(List<EsbFileSourceV3DTO> fileSources) throws ServiceException {
+    private List<FileSourceDTO> convertFileSource(Long appId,
+                                                  List<EsbFileSourceV3DTO> fileSources) throws ServiceException {
         if (fileSources == null) {
             return null;
         }
@@ -317,7 +318,7 @@ public class EsbFastTransferFileV3ResourceImpl
                 fileSourceDTO.setFileSourceId(fileSource.getFileSourceId());
             } else if (StringUtils.isNotBlank(fileSourceCode)) {
                 try {
-                    InternalResponse<Integer> resp = fileSourceService.getFileSourceIdByCode(fileSourceCode);
+                    InternalResponse<Integer> resp = fileSourceService.getFileSourceIdByCode(appId, fileSourceCode);
                     if (resp != null && resp.isSuccess()) {
                         if (resp.getData() != null) {
                             fileSourceDTO.setFileSourceId(resp.getData());

@@ -170,8 +170,8 @@ public class FileSourceServiceImpl implements FileSourceService {
     }
 
     @Override
-    public FileSourceDTO getFileSourceByCode(String code) {
-        return fileSourceDAO.getFileSourceByCode(dslContext, code);
+    public FileSourceDTO getFileSourceByCode(Long appId, String code) {
+        return fileSourceDAO.getFileSourceByCode(dslContext, appId, code);
     }
 
     private Long chooseAvailableWorker(String fileSourceTypeCode) {
