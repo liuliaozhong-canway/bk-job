@@ -83,7 +83,6 @@ public class EsbCredentialV3DTO extends EsbAppScopeDTO {
     /**
      * 更新时间
      */
-    @JsonSerialize(using = LongTimestampSerializer.class)
     @JsonProperty("last_modify_time")
     @JsonPropertyDescription("Last modify time")
     private Long lastModifyTime;

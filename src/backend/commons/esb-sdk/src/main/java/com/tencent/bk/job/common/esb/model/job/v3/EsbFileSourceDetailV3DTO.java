@@ -61,9 +61,9 @@ public class EsbFileSourceDetailV3DTO extends EsbAppScopeDTO {
     /**
      * 类型
      */
-    @JsonProperty("file_source_type")
+    @JsonProperty("file_source_type_code")
     @JsonPropertyDescription("File source type")
-    private Integer fileSourceType;
+    private Integer fileSourceTypeCode;
 
     /**
      * 是否为公共文件源
@@ -106,7 +106,6 @@ public class EsbFileSourceDetailV3DTO extends EsbAppScopeDTO {
     /**
      * 更新时间
      */
-    @JsonSerialize(using = LongTimestampSerializer.class)
     @JsonProperty("last_modify_time")
     @JsonPropertyDescription("Last modify time")
     private Long lastModifyTime;
