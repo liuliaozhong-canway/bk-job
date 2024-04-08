@@ -39,9 +39,11 @@ import org.jooq.BatchBindStep;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.SelectConditionStep;
 import org.jooq.conf.ParamType;
 import org.jooq.generated.tables.FileSource;
 import org.jooq.generated.tables.FileSourceShare;
+import org.jooq.generated.tables.records.FileSourceRecord;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -313,10 +315,12 @@ public class FileSourceDAOImpl extends BaseDAOImpl implements FileSourceDAO {
 
     @Override
     public FileSourceDTO getFileSourceByCode(DSLContext dslContext, Long appId, String code) {
-        val record = dslContext.selectFrom(defaultTable)
+        SelectConditionStep<FileSourceRecord> query = dslContext.selectFrom(defaultTable)
             .where(defaultTable.CODE.eq(code))
-            .and(defaultTable.APP_ID.eq(appId))
-            .fetchOne();
+            .and(defaultTable.APP_ID.eq(appId));
+        log.info("______查询语句："+query.getSQL());
+        var record = query.fetchOne();
+        log.info("查询结果：record="+record);
         if (record == null) {
             return null;
         } else {

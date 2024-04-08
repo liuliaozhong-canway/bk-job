@@ -25,6 +25,7 @@
 package com.tencent.bk.job.file_gateway.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.sun.media.jfxmedia.logging.Logger;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -39,6 +40,7 @@ import com.tencent.bk.job.file_gateway.model.req.common.FileSourceMetaData;
 import com.tencent.bk.job.file_gateway.model.req.common.FileSourceStaticParam;
 import com.tencent.bk.job.file_gateway.model.req.common.FileWorkerConfig;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +53,7 @@ import java.util.List;
 import java.util.Set;
 
 @Service
+@Slf4j
 public class FileSourceServiceImpl implements FileSourceService {
 
     private final DSLContext dslContext;
@@ -171,6 +174,7 @@ public class FileSourceServiceImpl implements FileSourceService {
 
     @Override
     public FileSourceDTO getFileSourceByCode(Long appId, String code) {
+        log.info("___查询条件：appId={}, code={}", appId, code);
         return fileSourceDAO.getFileSourceByCode(dslContext, appId, code);
     }
 
