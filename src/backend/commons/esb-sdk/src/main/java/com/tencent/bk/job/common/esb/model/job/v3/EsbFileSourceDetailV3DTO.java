@@ -63,7 +63,7 @@ public class EsbFileSourceDetailV3DTO extends EsbAppScopeDTO {
      */
     @JsonProperty("file_source_type_code")
     @JsonPropertyDescription("File source type")
-    private Integer fileSourceTypeCode;
+    private String fileSourceTypeCode;
 
     /**
      * 是否为公共文件源
