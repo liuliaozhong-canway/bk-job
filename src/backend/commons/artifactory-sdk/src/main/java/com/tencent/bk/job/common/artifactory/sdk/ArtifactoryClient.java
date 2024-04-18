@@ -557,6 +557,8 @@ public class ArtifactoryClient {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.BKREPO_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", "upload:" + URL_UPLOAD_GENERIC_FILE));
 
+            log.info("开始上传文件到制品库。。。");
+
             respStr = longHttpHelper.request(
                 HttpRequest.builder(HttpMethodEnum.PUT, url)
                     .setHttpEntity(reqEntity)
@@ -566,6 +568,7 @@ public class ArtifactoryClient {
             if (log.isDebugEnabled()) {
                 log.debug("respStr={}", getSimplifiedStrForLog(respStr));
             }
+            log.info("文件成功上传。。。");
             ArtifactoryResp<NodeDTO> resp = JsonUtils.fromJson(
                 respStr, new TypeReference<ArtifactoryResp<NodeDTO>>() {
                 }
