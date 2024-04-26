@@ -45,6 +45,7 @@ public class IamPublicScriptCallbackResourceImpl implements IamPublicScriptCallb
 
     @Override
     public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
+        log.info("this is IamPublicScriptCallbackResourceImpl,params=", callbackRequest.toString());
         return publicScriptCallbackHelper.doCallback(callbackRequest);
     }
 }

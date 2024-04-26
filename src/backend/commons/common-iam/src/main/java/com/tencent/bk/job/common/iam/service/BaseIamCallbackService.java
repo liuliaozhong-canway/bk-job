@@ -141,6 +141,7 @@ public abstract class BaseIamCallbackService {
                     callbackRequest.getType(), callbackRequest.getFilter(), callbackRequest.getPage());
                 response = new CallbackBaseResponseDTO();
         }
+        log.info("iam callback resp:{}", response);
         return response;
     }
 

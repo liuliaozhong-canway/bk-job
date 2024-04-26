@@ -81,6 +81,7 @@ public class PublicScriptCallbackHelper extends AbstractScriptCallbackHelper {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         List<String> scriptIdList = searchCondition.getIdList();
         List<ScriptBasicDTO> scriptBasicDTOList = publicScriptService.listScriptBasicInfoByScriptIds(scriptIdList);
+        log.info("iam callback scriptBasicDTOList={}", scriptBasicDTOList);
         return buildFetchInstanceResp(scriptIdList, scriptBasicDTOList);
     }
 
