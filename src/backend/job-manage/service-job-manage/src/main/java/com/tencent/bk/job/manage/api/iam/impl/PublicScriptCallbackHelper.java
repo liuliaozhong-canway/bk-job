@@ -78,6 +78,10 @@ public class PublicScriptCallbackHelper extends AbstractScriptCallbackHelper {
 
     @Override
     protected CallbackBaseResponseDTO fetchInstanceResp(CallbackRequestDTO callbackRequest) {
+        log.info("iam callback params={}", callbackRequest);
+        log.info("iam callback type={}, method={}, ids={}, filter={}",
+            callbackRequest.getType(), callbackRequest.getMethod(), callbackRequest.getFilter().getIdList(),
+            callbackRequest.getFilter());
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         List<String> scriptIdList = searchCondition.getIdList();
         List<ScriptBasicDTO> scriptBasicDTOList = publicScriptService.listScriptBasicInfoByScriptIds(scriptIdList);

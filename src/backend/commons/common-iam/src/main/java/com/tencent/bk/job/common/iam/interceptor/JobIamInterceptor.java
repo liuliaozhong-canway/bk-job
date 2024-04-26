@@ -51,7 +51,7 @@ public class JobIamInterceptor extends HandlerInterceptorAdapter {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
 
-        log.info("is iam request! type={},method={},filter={}",
+        log.info("is iam request! type={},method={},filter={},params={}",
             request.getParameter("type"),
             request.getParameter("method"),
             request.getParameter("filter"));
