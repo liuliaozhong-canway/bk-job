@@ -52,12 +52,21 @@ public class NotBlankFieldValidator implements ConstraintValidator<NotBlankField
         if (charSequence == null) {
             if (StringUtils.isNotEmpty(fieldName)) {
                 context.disableDefaultConstraintViolation();
-                String localizedFieldName = messageSource.getMessage(fieldName, null, LocaleContextHolder.getLocale());
-                String errorMessage = messageSource.getMessage(context.getDefaultConstraintMessageTemplate(), null,
+
+                // Retrieve localized field name
+                String localizedFieldName = messageSource.getMessage(fieldName, null, fieldName,
                     LocaleContextHolder.getLocale());
-                String finalMessage = localizedFieldName + errorMessage;
-                log.info("---------localizedFieldName={}, errorMessage={}", localizedFieldName, errorMessage);
+
+                // Get the message template
+                String messageTemplate = messageSource.getMessage("validation.constraints.NotBlankField.message",
+                    null, LocaleContextHolder.getLocale());
+
+                // Replace {fieldName} placeholder with actual field name
+                String finalMessage = localizedFieldName + messageTemplate;
+                log.info("---------localizedFieldName={}, messageTemplate={}", localizedFieldName, messageTemplate);
                 context.buildConstraintViolationWithTemplate(finalMessage).addConstraintViolation();
+                return false;
+
             }
             return false;
         }
