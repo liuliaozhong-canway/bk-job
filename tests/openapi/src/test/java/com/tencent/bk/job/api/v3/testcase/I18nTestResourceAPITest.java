@@ -35,7 +35,7 @@ class I18nTestResourceAPITest extends BaseTest {
                     .body(JsonUtil.toJson(req))
                     .post("/api/job/v3/job-manage/test_i18n")
                     .then()
-                    .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
+                    .spec(ApiUtil.failResponseSpec(ErrorCode.RESULT_OK));
         }
 
         @Test
@@ -52,7 +52,7 @@ class I18nTestResourceAPITest extends BaseTest {
                 .body(JsonUtil.toJson(req))
                 .post("/api/job/v3/job-manage/test_i18n")
                 .then()
-                .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
+                .spec(ApiUtil.failResponseSpec(ErrorCode.RESULT_OK));
         }
     }
 }

@@ -24,13 +24,41 @@
 
 package com.tencent.bk.job.common.validation;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
+
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
+@Slf4j
 public class NotBlankFieldValidator implements ConstraintValidator<NotBlankField, CharSequence> {
+
+    private String fieldName;
+
+    @Autowired
+    private MessageSource messageSource;
+
+    @Override
+    public void initialize(NotBlankField constraintAnnotation) {
+        this.fieldName = constraintAnnotation.fieldName();
+    }
+
     @Override
     public boolean isValid(CharSequence charSequence, ConstraintValidatorContext context) {
+        log.info("---------fieldName={}", fieldName);
         if (charSequence == null) {
+            if (StringUtils.isNotEmpty(fieldName)) {
+                context.disableDefaultConstraintViolation();
+                String localizedFieldName = messageSource.getMessage(fieldName, null, LocaleContextHolder.getLocale());
+                String errorMessage = messageSource.getMessage(context.getDefaultConstraintMessageTemplate(), null,
+                    LocaleContextHolder.getLocale());
+                String finalMessage = localizedFieldName + errorMessage;
+                log.info("---------localizedFieldName={}, errorMessage={}", localizedFieldName, errorMessage);
+                context.buildConstraintViolationWithTemplate(finalMessage).addConstraintViolation();
+            }
             return false;
         }
 
