@@ -194,22 +194,6 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
                     JooqDataTypeUtil.toByte(0)
             ).toString();
         log.debug("0820-执行脚本，保存脚本内容sql：{}", sql);
-
-        Configuration config = CTX.configuration();
-        ConnectionProvider connectionProvider = config.connectionProvider();
-        DataSourceConnectionProvider dataSource = (DataSourceConnectionProvider) connectionProvider;
-        try {
-            DatabaseMetaData metaData = dataSource.dataSource().getConnection().getMetaData();
-            String charset = config.charsetProvider().provide().name();
-            log.debug("0820-driverVersion={}, url={}, dbUser={},charset={}",
-                metaData.getDriverVersion(),
-                metaData.getURL(),
-                metaData.getUserName(),
-                charset
-                );
-        } catch (Exception e) {
-            log.error("0820-获取datasource报错", e);
-        }
     }
 
     @Override
