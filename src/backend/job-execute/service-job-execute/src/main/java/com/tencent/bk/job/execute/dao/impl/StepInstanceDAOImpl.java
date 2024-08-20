@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
+import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -45,6 +46,8 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
+import org.jooq.Configuration;
+import org.jooq.ConnectionProvider;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Record1;
@@ -57,12 +60,14 @@ import org.jooq.generated.tables.StepInstanceConfirm;
 import org.jooq.generated.tables.StepInstanceFile;
 import org.jooq.generated.tables.StepInstanceScript;
 import org.jooq.generated.tables.records.StepInstanceRecord;
+import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.types.UByte;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
+import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -163,6 +168,48 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
                 stepInstance.isSecureParam() ? JooqDataTypeUtil.toByte(1) :
                     JooqDataTypeUtil.toByte(0)
             ).execute();
+
+        String sql = CTX.insertInto(t, t.STEP_INSTANCE_ID, t.SCRIPT_CONTENT, t.SCRIPT_TYPE, t.SCRIPT_PARAM,
+            t.RESOLVED_SCRIPT_PARAM,
+            t.EXECUTION_TIMEOUT, t.SYSTEM_ACCOUNT_ID, t.SYSTEM_ACCOUNT, t.DB_ACCOUNT_ID,
+            t.DB_TYPE, t.DB_ACCOUNT, t.DB_PASSWORD, t.DB_PORT, t.SCRIPT_SOURCE, t.SCRIPT_ID, t.SCRIPT_VERSION_ID,
+            t.IS_SECURE_PARAM)
+            .values(stepInstance.getId(),
+                stepInstance.getScriptContent(),
+                JooqDataTypeUtil.toByte(stepInstance.getScriptType()),
+                stepInstance.getScriptParam(),
+                stepInstance.getResolvedScriptParam(),
+                stepInstance.getTimeout(),
+                stepInstance.getAccountId(),
+                stepInstance.getAccount(),
+                stepInstance.getDbAccountId(),
+                JooqDataTypeUtil.toByte(stepInstance.getDbType()),
+                stepInstance.getDbAccount(),
+                stepInstance.getDbPass(),
+                stepInstance.getDbPort(),
+                scriptSourceByteValue,
+                stepInstance.getScriptId(),
+                stepInstance.getScriptVersionId(),
+                stepInstance.isSecureParam() ? JooqDataTypeUtil.toByte(1) :
+                    JooqDataTypeUtil.toByte(0)
+            ).toString();
+        log.debug("0820-执行脚本，保存脚本内容sql：{}", sql);
+
+        Configuration config = CTX.configuration();
+        ConnectionProvider connectionProvider = config.connectionProvider();
+        DataSourceConnectionProvider dataSource = (DataSourceConnectionProvider) connectionProvider;
+        try {
+            DatabaseMetaData metaData = dataSource.dataSource().getConnection().getMetaData();
+            String charset = config.charsetProvider().provide().name();
+            log.debug("0820-driverVersion={}, url={}, dbUser={},charset={}",
+                metaData.getDriverVersion(),
+                metaData.getURL(),
+                metaData.getUserName(),
+                charset
+                );
+        } catch (Exception e) {
+            log.error("0820-获取datasource报错", e);
+        }
     }
 
     @Override
@@ -209,7 +256,15 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
             t.SCRIPT_VERSION_ID, t.IS_SECURE_PARAM
         ).from(t)
             .where(t.STEP_INSTANCE_ID.eq(stepInstanceId)).fetchOne();
-        return extractScriptInfo(record);
+        ScriptStepInstanceDTO scriptStepInstanceDTO = extractScriptInfo(record);
+        //return extractScriptInfo(scriptStepInstanceDTO);
+        log.debug("0820-从数据查询到的脚步步骤信息：step_instance_id={} \n script_content={}",
+            scriptStepInstanceDTO.getStepInstanceId(),
+            scriptStepInstanceDTO.getScriptContent());
+
+        String encodeContent = Base64Util.encodeContentToStr(scriptStepInstanceDTO.getScriptContent());
+        log.debug("0820-脚本内容base64编码后：{}", encodeContent);
+        return scriptStepInstanceDTO;
     }
 
     private ScriptStepInstanceDTO extractScriptInfo(Record record) {

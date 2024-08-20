@@ -138,7 +138,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
 
         ExecuteStepVO stepVO = convertToStepVO(stepInstance);
         fillRollingConfigForRollingStep(stepVO, stepInstance);
-
+        log.debug("0820-获取步骤内容接口结果：{}", stepVO);
         return Response.buildSuccessResp(stepVO);
     }
 

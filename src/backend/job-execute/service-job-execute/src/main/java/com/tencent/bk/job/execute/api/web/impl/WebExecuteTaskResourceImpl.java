@@ -240,6 +240,9 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         StepInstanceDTO stepInstance = buildFastScriptStepInstance(username, appResourceScope.getAppId(), request);
         String decodeScriptContent = new String(Base64.decodeBase64(request.getContent()), StandardCharsets.UTF_8);
         stepInstance.setScriptContent(decodeScriptContent);
+        log.debug("0820-web快速执行脚本,脚本原始内容：{}", request.getContent());
+        log.debug("0820-web快速执行脚本,脚本解码后的内容：{}", decodeScriptContent);
+
         StepRollingConfigDTO rollingConfig = null;
         if (request.isRollingEnabled()) {
             rollingConfig = StepRollingConfigDTO.fromRollingConfigVO(request.getRollingConfig());
