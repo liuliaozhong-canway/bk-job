@@ -107,6 +107,10 @@ spec:
             - name: job-gse-tls-password
               mountPath: /etc/secrets
               readOnly: true
+            - name: job-logback-default
+              mountPath: /data/job/config
+            - name: job-logback-spring
+              mountPath: /data/job/config
       volumes:
         - name: job-storage
           persistentVolumeClaim:
@@ -136,4 +140,10 @@ spec:
                 path: gse.keystore.password
               - key: gse.truststore.password
                 path: gse.truststore.password
+        - name: job-logback-default
+          configMap:
+            name: {{ include "common.names.fullname" . }}-logback-default
+        - name: job-logback-spring
+          configMap:
+            name: {{ include "common.names.fullname" . }}-manage-logback-spring
 {{- end }}

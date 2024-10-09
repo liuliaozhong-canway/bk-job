@@ -58,6 +58,7 @@ fi
 exec java -server \
      -Dfile.encoding=UTF-8 \
      -Djob.log.dir=$BK_JOB_LOG_BASE_DIR \
+     -Dlogging.config=/data/job/config/logback-spring.xml \
      -Xloggc:$BK_JOB_LOG_DIR/gc.log \
      -XX:+UseGCLogFileRotation \
      -XX:NumberOfGCLogFiles=12 \

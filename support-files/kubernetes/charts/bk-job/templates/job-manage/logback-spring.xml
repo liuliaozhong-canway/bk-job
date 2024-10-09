@@ -10,7 +10,7 @@
     <property name="SYNC_APP_HOST_LOG_FILE" value="${APP_LOG_DIR}/sync_app_host.log"/>
     <property name="NOTICE_LOG_FILE" value="${APP_LOG_DIR}/notice.log"/>
 
-    <include resource="logback-default.xml"/>
+    <include resource="/data/job/config/logback-default.xml"/>
 
     <appender name="sync-app-host-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${SYNC_APP_HOST_LOG_FILE}</file>
