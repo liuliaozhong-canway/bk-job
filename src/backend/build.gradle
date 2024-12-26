@@ -163,7 +163,7 @@ ext {
     // Fix CVE-2023-3635 2.8.0->3.4.0
     set('okioVersion', "3.4.0")
     // Fix CVE-2023-34062 1.0.24->1.0.39
-    //set('reactorNettyHttpVersion', "1.0.39")
+    set('reactorNettyHttpVersion', "1.0.24")
     // Fix CVE-2023-44487 4.1.84.Final->4.1.100.Final
     set('nettyCodecHttp2Version', "4.1.100.Final")
     // Fix CVE-2024-38809 CVE-2024-22262 CVE-2024-22259 CVE-2024-22243 5.3.23->5.3.39
