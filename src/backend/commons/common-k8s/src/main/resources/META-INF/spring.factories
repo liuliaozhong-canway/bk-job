@@ -1,3 +1,6 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 com.tencent.bk.job.common.k8s.config.K8sServiceInfoServiceAutoConfiguration,\
 com.tencent.bk.job.common.k8s.config.JobApplicationAvailabilityAutoConfiguration
+
+org.springframework.cloud.bootstrap.BootstrapConfiguration=\
+com.tencent.bk.job.common.k8s.config.CustomKubernetesClientAutoConfiguration
