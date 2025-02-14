@@ -45,6 +45,8 @@ import io.kubernetes.client.openapi.models.V1ServiceList;
 import io.kubernetes.client.openapi.models.V1ServiceSpec;
 import io.kubernetes.client.util.Config;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
+import okhttp3.Protocol;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -121,6 +123,12 @@ public class StartupController {
         ApiClient client = null;
         try {
             client = Config.defaultClient();
+            OkHttpClient customClient = client.getHttpClient()
+                    .newBuilder()
+                    // 默认的HTTP_2不兼容，使用HTTP_1.1
+                    .protocols(Arrays.asList(Protocol.HTTP_1_1))
+                    .build();
+            client.setHttpClient(customClient);
         } catch (IOException e) {
             log.error("Fail to get k8s api defaultClient", e);
         }

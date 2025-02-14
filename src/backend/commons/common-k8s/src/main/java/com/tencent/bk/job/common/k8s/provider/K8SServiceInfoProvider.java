@@ -37,6 +37,8 @@ import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.openapi.models.V1PodStatus;
 import io.kubernetes.client.util.Config;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
+import okhttp3.Protocol;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
@@ -44,6 +46,7 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceI
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -115,6 +118,12 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
         V1PodList podList;
         try {
             ApiClient client = Config.defaultClient();
+            OkHttpClient customClient = client.getHttpClient()
+                    .newBuilder()
+                    // 默认的HTTP_2不兼容，使用HTTP_1.1
+                    .protocols(Arrays.asList(Protocol.HTTP_1_1))
+                    .build();
+            client.setHttpClient(customClient);
             Configuration.setDefaultApiClient(client);
 
             CoreV1Api api = new CoreV1Api();
