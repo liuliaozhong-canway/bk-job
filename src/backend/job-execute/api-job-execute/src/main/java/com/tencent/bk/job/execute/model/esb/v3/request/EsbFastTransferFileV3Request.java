@@ -124,7 +124,7 @@ public class EsbFastTransferFileV3Request extends EsbAppScopeReq {
      * 是否启动任务
      */
     @JsonProperty("start_task")
-    private Boolean startTask;
+    private Boolean startTask = true;
 
     public void trimIps() {
         if (this.targetServer != null) {

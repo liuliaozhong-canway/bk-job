@@ -48,7 +48,8 @@ public class FastTaskDTO {
     /**
      * 是否启动任务
      */
-    private Boolean startTask;
+    @Builder.Default
+    private Boolean startTask = true;
 
     /**
      * 是否滚动执行
