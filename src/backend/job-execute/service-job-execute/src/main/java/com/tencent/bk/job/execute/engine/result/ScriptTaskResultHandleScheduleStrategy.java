@@ -41,13 +41,19 @@ public class ScriptTaskResultHandleScheduleStrategy implements ScheduleStrategy 
     @Override
     public long getDelay() {
         int handleCount = times.addAndGet(1);
-        if (handleCount <= 10) {
-            // 10s以内，周期为1s
+        if (handleCount <= 5) {
+            // 1s以内，周期为200ms
+            return 200;
+        } else if (handleCount <= 9) {
+            // 1s-3s以内，周期为500ms
+            return 500;
+        } else if (handleCount <= 16) {
+            // 3s-10s,周期为1s
             return 1000;
-        } else if (handleCount <= 35) {
+        } else if (handleCount <= 41) {
             // 10s-1min,周期为2s
             return 2000;
-        } else if (handleCount <= 88) {
+        } else if (handleCount <= 89) {
             // 1min-5min,周期为5s
             return 5000;
         } else {
