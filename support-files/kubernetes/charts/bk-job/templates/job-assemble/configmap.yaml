@@ -357,6 +357,8 @@ data:
         scriptTask:
           query:
             contentSizeLimit: {{ .Values.executeConfig.scriptTask.query.contentSizeLimit }}
+        result:
+          schedule-strategy: {{ .Values.executeConfig.result.scheduleStrategy }}
       crontab:
         notification-policy:
           failed:

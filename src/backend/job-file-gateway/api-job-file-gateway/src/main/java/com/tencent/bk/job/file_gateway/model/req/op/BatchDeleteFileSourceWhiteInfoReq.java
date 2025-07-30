@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -22,17 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.exception;
+package com.tencent.bk.job.file_gateway.model.req.op;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.InternalException;
 
-/**
- * 服务拒绝访问
- */
-public class ServiceNoAuthException extends InternalException {
-    public ServiceNoAuthException() {
-        super(ErrorCode.SERVICE_AUTH_FAIL);
-    }
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+@ApiModel("删除文件源蓝鲸制品库地址白名单请求内容")
+public class BatchDeleteFileSourceWhiteInfoReq {
+
+    /**
+     * 需要删除的id列表
+     */
+    @ApiModelProperty(value = "需要删除的id列表")
+    private List<Integer> idList;
 
 }
