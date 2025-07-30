@@ -24,36 +24,28 @@
 
 package com.tencent.bk.job.execute.engine.result;
 
+import com.tencent.bk.job.execute.config.ScheduleStrategyProperties;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 脚本任务调度策略
  */
 @Slf4j
-public class ScriptTaskResultHandleScheduleStrategy implements ScheduleStrategy {
-    /**
-     * 任务累计执行次数
-     */
-    private final AtomicInteger times = new AtomicInteger(0);
+public class ScriptTaskResultHandleScheduleStrategy extends AbstractResultHandleScheduleStrategy {
+
+    public ScriptTaskResultHandleScheduleStrategy(ScheduleStrategyProperties.DelayConfig config) {
+        super(config);
+    }
 
     @Override
-    public long getDelay() {
-        int handleCount = times.addAndGet(1);
-        if (handleCount <= 5) {
-            // 1s以内，周期为200ms
-            return 200;
-        } else if (handleCount <= 9) {
-            // 1s-3s以内，周期为500ms
-            return 500;
-        } else if (handleCount <= 16) {
-            // 3s-10s,周期为1s
+    protected long getDelayWithoutRules(int handleCount) {
+        if (handleCount <= 10) {
+            // 10s以内，周期为1s
             return 1000;
-        } else if (handleCount <= 41) {
+        } else if (handleCount <= 35) {
             // 10s-1min,周期为2s
             return 2000;
-        } else if (handleCount <= 89) {
+        } else if (handleCount <= 88) {
             // 1min-5min,周期为5s
             return 5000;
         } else {

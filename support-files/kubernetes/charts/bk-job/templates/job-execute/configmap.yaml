@@ -201,6 +201,8 @@ data:
         scriptTask:
           query:
             contentSizeLimit: {{ .Values.executeConfig.scriptTask.query.contentSizeLimit }}
+        result:
+          schedule-strategy: {{ .Values.executeConfig.result.scheduleStrategy }}
     tls:
       # 连接Redis使用的TLS配置
       redis:
