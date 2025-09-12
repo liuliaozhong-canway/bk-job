@@ -33,6 +33,7 @@ import com.mongodb.client.model.WriteModel;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.CollectionUtil;
+import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
 import com.tencent.bk.job.logsvr.model.FileLogQuery;
 import com.tencent.bk.job.logsvr.model.FileTaskLogDoc;
