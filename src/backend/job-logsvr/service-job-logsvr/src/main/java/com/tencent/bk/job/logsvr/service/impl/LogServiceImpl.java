@@ -68,8 +68,8 @@ import java.util.stream.Collectors;
 public class LogServiceImpl implements LogService {
     private static final int BATCH_SIZE = 100;
     private static final char[] SPECIAL_CHAR = {'*', '(', ')', '+', '?', '\\', '$', '^', '>', '.', '[', ']', '|'};
-    private static final String[] ESCAPE_CHAR = {"\\*", "\\(", "\\)", "\\+", "\\?", "\\\\", "\\$", "\\^", "\\>", "\\" +
-        ".", "\\[", "\\]", "\\|"};
+    private static final String[] ESCAPE_CHAR = {"\\*", "\\(", "\\)", "\\+", "\\?", "\\\\", "\\$", "\\^", "\\>", "\\.",
+        "\\[", "\\]", "\\|"};
     private final MongoTemplate mongoTemplate;
     private final LogCollectionFactory logCollectionFactory;
 
