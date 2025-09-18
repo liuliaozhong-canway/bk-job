@@ -38,6 +38,8 @@ import com.tencent.bk.job.execute.engine.model.GseTaskResponse;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ScriptResultHandleTask;
+import com.tencent.bk.job.execute.engine.syntax.ShellSyntaxFactory;
+import com.tencent.bk.job.execute.engine.syntax.ShellSyntaxProcessor;
 import com.tencent.bk.job.execute.engine.util.MacroUtil;
 import com.tencent.bk.job.execute.engine.util.ScriptVariableResolver;
 import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
@@ -76,6 +78,21 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
     private final JobBuildInVariableResolver jobBuildInVariableResolver;
 
     /**
+     * 脚本默认的解释器声明
+     */
+    private static final String DEFAULT_SHEBANG = "#!/bin/bash";
+
+    /**
+     * 从用户脚本提取的解释器声明
+     */
+    private String extractedShebang;
+
+    /**
+     * shell语法差异处理对象
+     */
+    private ShellSyntaxProcessor shellSyntaxProcessor;
+
+    /**
      * ScriptTaskExecutor Constructor
      *
      * @param requestId                  请求ID
@@ -93,6 +110,19 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
         super(requestId, gseTasksExceptionCounter, taskInstance, stepInstance, executeIps);
         this.jobBuildInVariableResolver = jobBuildInVariableResolver;
         scriptFilePath = GseConstants.SCRIPT_PATH + "/" + stepInstance.getAccount();
+        this.extractedShebang = extractShebang(stepInstance.getScriptContent());
+        this.shellSyntaxProcessor = ShellSyntaxFactory.fromShebang(this.extractedShebang);
+    }
+
+    /**
+     * 提取用户脚本中的解释器申明
+     */
+    private String extractShebang(String scriptContent) {
+        if (StringUtils.isEmpty(scriptContent)) {
+            return DEFAULT_SHEBANG;
+        }
+        String firstLine = scriptContent.split("\\r?\\n", 2)[0].trim();
+        return firstLine.startsWith("#!") ? firstLine : DEFAULT_SHEBANG;
     }
 
     @Override
@@ -259,7 +289,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
 
     private String buildConstVarDeclareScript(List<TaskVariableDTO> taskVars, List<String> importVariables) {
         StringBuffer sb = new StringBuffer(1024);
-        sb.append("#!/bin/bash\n");
+        sb.append(extractedShebang).append("\n");
         sb.append("set -e\n");
         for (TaskVariableDTO taskVar : taskVars) {
             buildDeclareScript(taskVar, sb);
@@ -275,26 +305,12 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
         int varType = var.getType();
         if (varType == TaskVariableTypeEnum.STRING.getType() || varType == TaskVariableTypeEnum.CIPHER.getType()
             || varType == TaskVariableTypeEnum.NAMESPACE.getType()) {
-            appendStringVariableDeclareScript(sb, paramName, paramValue);
+            sb.append(shellSyntaxProcessor.declareVariable(paramName, paramValue, true));
         } else if (varType == TaskVariableTypeEnum.ASSOCIATIVE_ARRAY.getType()) {
-            sb.append("declare -A ").append(paramName);
-            if (StringUtils.isNotBlank(paramValue)) {
-                sb.append("=").append(paramValue);
-            }
-            sb.append("\n");
+            sb.append(shellSyntaxProcessor.declareAssociativeArray(paramName, paramValue, true));
         } else if (varType == TaskVariableTypeEnum.INDEX_ARRAY.getType()) {
-            sb.append("declare -a ");
-            sb.append(paramName);
-            if (StringUtils.isNotBlank(paramValue)) {
-                sb.append("=").append(paramValue);
-            }
-            sb.append("\n");
+            sb.append(shellSyntaxProcessor.declareIndexArray(paramName, paramValue, true));
         }
-    }
-
-    private void appendStringVariableDeclareScript(StringBuffer sb, String variableName, String variableValue) {
-        sb.append("declare ").append(variableName).append("=");
-        sb.append("'").append(escapeSingleQuote(StringUtils.isEmpty(variableValue) ? "" : variableValue)).append("'\n");
     }
 
     private void appendImportVariablesDeclareScript(StringBuffer sb, List<TaskVariableDTO> taskVars,
@@ -328,7 +344,8 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
             }
         }
         variableValues.forEach((variableName, variableValue) ->
-            appendStringVariableDeclareScript(sb, variableName, variableValue));
+                sb.append(shellSyntaxProcessor.declareVariable(variableName, variableValue, true))
+        );
     }
 
     private String escapeSingleQuote(String value) {
@@ -343,7 +360,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
 
     private String buildWrapperScriptWithConstParamOnly(String declareFileName, String userScriptFileName) {
         StringBuffer sb = new StringBuffer(1024);
-        sb.append("#!/bin/bash\n");
+        sb.append(extractedShebang).append("\n");
         sb.append("BASE_PATH=\"\"\n");
         sb.append("OS_TYPE=`uname -s`\n");
         sb.append("if [ \"`echo ${OS_TYPE}|grep -i 'CYGWIN'`\" ];then\n");
@@ -423,7 +440,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
                                                    List<String> importVariables) {
         List<TaskVariableDTO> globalVars = taskVariablesAnalyzeResult.getTaskVars();
         StringBuffer sb = new StringBuffer(1024);
-        sb.append("#!/bin/bash\n");
+        sb.append(extractedShebang).append("\n");
         sb.append("set -e\n");
 
         //从作业参数中初始化输入参数
@@ -490,7 +507,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
                                                             String allParamsOutputFileName,
                                                             String scriptParam) {
         StringBuilder sb = new StringBuilder(1024);
-        sb.append("#!/bin/bash\n");
+        sb.append(extractedShebang).append("\n");
         sb.append("BASE_PATH=\"\"\n");
         sb.append("OS_TYPE=`uname -s`\n");
         sb.append("if [ \"`echo ${OS_TYPE}|grep -i 'CYGWIN'`\" ];then\n");
@@ -515,7 +532,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
         namespaceParamsOutputFileName,
                                                  String allParamsOutputFileName) {
         StringBuilder sb = new StringBuilder();
-        sb.append("function outputVarOnExit(){\n");
+        sb.append("outputVarOnExit(){\n");
         sb.append("  exit_code=$?\n");
         sb.append("  if [ 0 == \"$exit_code\" ];then\n");
         if (taskVariablesAnalyzeResult.isExistAnyVar()) {
@@ -561,7 +578,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
 
     private String buildGetJobParamsScript(String varOutputFileName) {
         StringBuilder sb = new StringBuilder(1024);
-        sb.append("#!/bin/bash\n");
+        sb.append(extractedShebang).append("\n");
         sb.append("BASE_PATH=\"\"\n");
         sb.append("OS_TYPE=`uname -s`\n");
         sb.append("if [ \"`echo ${OS_TYPE}|grep -i 'CYGWIN'`\" ];then\n");
@@ -569,8 +586,8 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
         sb.append("fi\n");
         sb.append("\n");
         String catFilePath = "${BASE_PATH}" + scriptFilePath + File.separator + varOutputFileName;
-        sb.append("declare -i total_time=10\n");
-        sb.append("declare -i cost_time=0\n");
+        sb.append(shellSyntaxProcessor.declareIntVariable("total_time", 10, true));
+        sb.append(shellSyntaxProcessor.declareIntVariable("cost_time", 0, true));
         sb.append("while [ $cost_time -le $total_time ];do\n");
         sb.append("  if [ -f ").append(catFilePath).append(" ];then\n");
         sb.append("    cat ").append(catFilePath).append("\n");
