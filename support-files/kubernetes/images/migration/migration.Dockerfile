@@ -1,5 +1,7 @@
 FROM bkjob/tool-set:3.10.0
 
+SHELL ["/bin/bash", "-c"]
+
 LABEL maintainer="Tencent BlueKing Job"
 LABEL dockerfile.version="3.10.0"
 

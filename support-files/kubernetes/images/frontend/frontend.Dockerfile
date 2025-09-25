@@ -1,5 +1,7 @@
 FROM tencentos/tencentos4-minimal:4.4-v20250805
 
+SHELL ["/bin/bash", "-c"]
+
 LABEL maintainer="Tencent BlueKing Job"
 
 RUN dnf -y install nginx && \
