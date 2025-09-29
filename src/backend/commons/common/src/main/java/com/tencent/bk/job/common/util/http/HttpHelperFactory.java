@@ -2,6 +2,7 @@ package com.tencent.bk.job.common.util.http;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpRequest;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -9,9 +10,12 @@ import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.StandardHttpRequestRetryHandler;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpCoreContext;
 import org.apache.http.ssl.SSLContexts;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -64,7 +68,21 @@ public class HttpHelperFactory {
             .disableAuthCaching()
             .disableCookieManagement();
         if (canRetry) {
-            httpClientBuilder.setRetryHandler(new StandardHttpRequestRetryHandler());
+            httpClientBuilder.setRetryHandler(new StandardHttpRequestRetryHandler() {
+                @Override
+                public boolean retryRequest(IOException exception, int executionCount, HttpContext context) {
+                    HttpRequest request = (HttpRequest) context.getAttribute(HttpCoreContext.HTTP_REQUEST);
+                    String uri = request.getRequestLine().getUri();
+                    String method = request.getRequestLine().getMethod();
+                    log.warn("http request error, retry #{} due to {} - {} {}",
+                        executionCount,
+                        exception.getClass().getSimpleName(),
+                        method,
+                        uri
+                    );
+                    return super.retryRequest(exception, executionCount, context);
+                }
+            });
         }
         CloseableHttpClient httpClient;
         LayeredConnectionSocketFactory sslSocketFactory = null;

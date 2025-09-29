@@ -163,6 +163,9 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     private final ThreadPoolExecutor threadPoolExecutor;
     private final ThreadPoolExecutor longTermThreadPoolExecutor;
     private final CmdbConfig cmdbConfig;
+
+    private final ExtHttpHelper retryableHttpHelper = HttpHelperFactory.getRetryableHttpHelper();
+
     /**
      * 对整个应用中所有的CMDB调用进行限流
      */
@@ -309,7 +312,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                                          String uri,
                                          EsbReq reqBody,
                                          TypeReference<EsbResp<R>> typeReference) {
-        return requestCmdbApi(method, uri, reqBody, typeReference, null);
+        return requestCmdbApi(method, uri, reqBody, typeReference, retryableHttpHelper);
     }
 
     public <R> EsbResp<R> requestCmdbApi(String method,
