@@ -68,7 +68,7 @@ public class HttpHelperFactory {
             .disableAuthCaching()
             .disableCookieManagement();
         if (canRetry) {
-            httpClientBuilder.setRetryHandler(new StandardHttpRequestRetryHandler() {
+            httpClientBuilder.setRetryHandler(new StandardHttpRequestRetryHandler(3, true) {
                 @Override
                 public boolean retryRequest(IOException exception, int executionCount, HttpContext context) {
                     HttpRequest request = (HttpRequest) context.getAttribute(HttpCoreContext.HTTP_REQUEST);
