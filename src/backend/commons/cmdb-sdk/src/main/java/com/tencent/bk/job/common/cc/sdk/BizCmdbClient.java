@@ -312,7 +312,21 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                                          String uri,
                                          EsbReq reqBody,
                                          TypeReference<EsbResp<R>> typeReference) {
-        return requestCmdbApi(method, uri, reqBody, typeReference, retryableHttpHelper);
+        int maxRetry = 3;
+        int retryCount = 0;
+        while (true) {
+            try {
+                return requestCmdbApi(method, uri, reqBody, typeReference, retryableHttpHelper);
+            } catch (InternalCmdbException e) {
+                retryCount++;
+                if (retryCount < maxRetry) {
+                    log.warn("InternalCmdbException, uri:{}, retry {}/{}, cause: {}", uri, retryCount, maxRetry, e.getMessage());
+                    ThreadUtils.sleep(100L);
+                    continue;
+                }
+                throw e;
+            }
+        }
     }
 
     public <R> EsbResp<R> requestCmdbApi(String method,
