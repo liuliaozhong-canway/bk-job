@@ -55,6 +55,9 @@ buildscript {
         maven { url "https://plugins.gradle.org/m2/" }
         mavenCentral()
         maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+        flatDir {
+            dirs "$rootDir/libs"
+        }
     }
     dependencies {
         classpath "io.spring.gradle:dependency-management-plugin:$springDependencyManagePluginVersion"
@@ -177,8 +180,6 @@ ext {
     set('tomcat.version', "9.0.96")
     // Fix CVE-2022-41854 CVE-2022-38752 CVE-2022-38751 CVE-2022-38749 CVE-2022-25857 CVE-2022-1471 1.29->1.33
     set('snakeyaml.version', "1.33")
-    // 宝兰德
-    set('besLiteVersion', "9.5.5")
 }
 
 group "com.tencent.bk.job"
@@ -231,6 +232,9 @@ allprojects {
         }
         maven { url "https://plugins.gradle.org/m2/" }
         maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+        flatDir {
+            dirs "$rootDir/libs"
+        }
     }
 
     configurations.all {
@@ -277,7 +281,7 @@ subprojects {
         }
         include '**/*Test.class'
     }
-    //build.dependsOn testAll
+    build.dependsOn testAll
 
     dependencyManagement {
         applyMavenExclusions = false
@@ -383,7 +387,6 @@ subprojects {
             dependency "com.squareup.okhttp3:okhttp:$okHttpVersion"
             dependency "com.rabbitmq:amqp-client:$amqpClientVersion"
             dependency "org.eclipse.jgit:org.eclipse.jgit:$jgitVersion"
-            dependency "com.bes.appserv-web:bes-lite-spring-boot-2.x-starter:$besLiteVersion"
         }
     }
     dependencies {

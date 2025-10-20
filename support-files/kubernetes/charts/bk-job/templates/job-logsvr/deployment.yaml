@@ -69,6 +69,7 @@ spec:
           imagePullPolicy: {{ .Values.logsvrConfig.image.pullPolicy }}
           env:
             {{- include "job.common.env" . | nindent 12 }}
+            {{- include "job.besapp.licenseEnv" . | nindent 12 }}
             - name: BK_JOB_APP_NAME
               value: "job-logsvr"
             - name: BK_JOB_JVM_OPTION

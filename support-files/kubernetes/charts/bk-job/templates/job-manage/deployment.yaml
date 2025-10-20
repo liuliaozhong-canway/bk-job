@@ -70,6 +70,7 @@ spec:
           imagePullPolicy: {{ .Values.manageConfig.image.pullPolicy }}
           env:
             {{- include "job.common.env" . | nindent 12 }}
+            {{- include "job.besapp.licenseEnv" . | nindent 12 }}
             - name: BK_JOB_APP_NAME
               value: "job-manage"
             - name: BK_JOB_EDITION
