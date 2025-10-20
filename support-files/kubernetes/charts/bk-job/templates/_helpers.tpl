@@ -1,4 +1,19 @@
 {{/*
+Inject BESAPP_LICENSE_DATA env var if configured
+Usage:
+{{ include "job.besapp.licenseEnv" . | nindent 8 }}
+*/}}
+{{- define "job.besapp.licenseEnv" -}}
+{{- if .Values.license.besapp.configMapName }}
+- name: BESAPP_LICENSE_DATA
+  valueFrom:
+    configMapKeyRef:
+      name: {{ .Values.license.besapp.configMapName | quote }}
+      key: {{ .Values.license.besapp.key | default "bes.lic.txt" | quote }}
+{{- end }}
+{{- end }}
+
+{{/*
 Create a default fully qualified name for job.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 */}}

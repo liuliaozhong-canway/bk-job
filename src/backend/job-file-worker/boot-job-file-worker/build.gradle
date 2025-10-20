@@ -32,7 +32,7 @@ dependencies {
     implementation project(":job-file-worker-sdk:service-job-file-worker-sdk")
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'com.bes.appserv-web:bes-lite-spring-boot-2.x-starter'
+    implementation name: 'bes-lite-spring-boot-2.x-starter-9.5.5.007'
     implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
 }
 springBoot {

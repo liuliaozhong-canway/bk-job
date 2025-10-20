@@ -41,7 +41,7 @@ dependencies {
     api project(":commons:gse-sdk")
     api project(":commons:ai-dev-sdk")
     implementation "org.springframework.boot:spring-boot-starter-web"
-    implementation "com.bes.appserv-web:bes-lite-spring-boot-2.x-starter"
+    implementation name: 'bes-lite-spring-boot-2.x-starter-9.5.5.007'
     implementation "org.springframework.boot:spring-boot-starter-jdbc"
     implementation "org.springframework.boot:spring-boot-starter-jooq"
     implementation "org.springframework.cloud:spring-cloud-starter-sleuth"
