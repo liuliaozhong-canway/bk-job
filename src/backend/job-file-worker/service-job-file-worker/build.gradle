@@ -29,6 +29,7 @@ dependencies {
     api project(":job-file-worker-sdk:api-job-file-worker-sdk")
     api project(":job-file-worker-sdk:service-job-file-worker-sdk")
     implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation "com.bes.appserv-web:bes-lite-spring-boot-2.x-starter"
     implementation "ch.qos.logback:logback-core"
     implementation "ch.qos.logback:logback-classic"
     implementation "org.slf4j:slf4j-api"

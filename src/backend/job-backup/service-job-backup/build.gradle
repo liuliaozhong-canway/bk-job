@@ -36,6 +36,7 @@ dependencies {
     api project(":commons:common-crypto")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation "com.bes.appserv-web:bes-lite-spring-boot-2.x-starter"
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
     implementation("org.springframework.boot:spring-boot-starter-jooq")
     implementation "org.apache.commons:commons-collections4"
