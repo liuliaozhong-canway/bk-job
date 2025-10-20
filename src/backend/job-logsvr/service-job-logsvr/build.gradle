@@ -28,6 +28,7 @@ dependencies {
     api project(':commons:common-security')
     api project(':commons:common-web')
     api("org.springframework.boot:spring-boot-starter-web")
+    api("com.bes.appserv-web:bes-lite-spring-boot-2.x-starter")
     api("org.springframework.boot:spring-boot-starter-data-mongodb")
     api("org.springframework.cloud:spring-cloud-starter-sleuth")
     implementation 'org.apache.commons:commons-collections4'

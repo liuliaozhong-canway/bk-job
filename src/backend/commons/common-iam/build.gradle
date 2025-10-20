@@ -28,6 +28,7 @@ dependencies {
     api project(":commons:esb-sdk")
     api 'org.springframework:spring-context'
     compileOnly 'org.springframework.boot:spring-boot-starter-web'
+    compileOnly 'com.bes.appserv-web:bes-lite-spring-boot-2.x-starter'
     implementation 'org.apache.httpcomponents:httpclient'
     implementation 'org.aspectj:aspectjweaver'
     implementation 'io.micrometer:micrometer-registry-prometheus'

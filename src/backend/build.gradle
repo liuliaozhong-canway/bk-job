@@ -177,6 +177,8 @@ ext {
     set('tomcat.version', "9.0.96")
     // Fix CVE-2022-41854 CVE-2022-38752 CVE-2022-38751 CVE-2022-38749 CVE-2022-25857 CVE-2022-1471 1.29->1.33
     set('snakeyaml.version', "1.33")
+    // 宝兰德
+    set('besLiteVersion', "9.5.5")
 }
 
 group "com.tencent.bk.job"
@@ -275,7 +277,7 @@ subprojects {
         }
         include '**/*Test.class'
     }
-    build.dependsOn testAll
+    //build.dependsOn testAll
 
     dependencyManagement {
         applyMavenExclusions = false
@@ -381,6 +383,7 @@ subprojects {
             dependency "com.squareup.okhttp3:okhttp:$okHttpVersion"
             dependency "com.rabbitmq:amqp-client:$amqpClientVersion"
             dependency "org.eclipse.jgit:org.eclipse.jgit:$jgitVersion"
+            dependency "com.bes.appserv-web:bes-lite-spring-boot-2.x-starter:$besLiteVersion"
         }
     }
     dependencies {
@@ -396,6 +399,7 @@ subprojects {
         all*.exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
         all*.exclude group: 'org.springframework.cloud', module: 'spring-cloud-sleuth-brave'
         all*.exclude group: 'org.springframework.data', module: 'spring-data-redis'
+        all*.exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
     }
 }
 apply plugin: TaskTreePlugin

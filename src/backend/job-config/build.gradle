@@ -39,6 +39,7 @@ dependencies {
     api project(":commons:common-consul")
     implementation("org.springframework.boot:spring-boot-autoconfigure")
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'com.bes.appserv-web:bes-lite-spring-boot-2.x-starter'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'

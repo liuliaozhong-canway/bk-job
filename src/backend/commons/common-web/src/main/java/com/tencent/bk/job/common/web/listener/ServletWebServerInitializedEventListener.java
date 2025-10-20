@@ -26,14 +26,10 @@ package com.tencent.bk.job.common.web.listener;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.ProtocolHandler;
-import org.apache.tomcat.util.threads.ThreadPoolExecutor;
 import org.springframework.boot.web.embedded.tomcat.TomcatWebServer;
 import org.springframework.boot.web.server.WebServer;
 import org.springframework.boot.web.servlet.context.ServletWebServerInitializedEvent;
 import org.springframework.context.ApplicationListener;
-
-import java.util.concurrent.Executor;
 
 /**
  * 监听WebServer初始化完成事件，执行注册线程池监控指标等动作
@@ -63,26 +59,6 @@ public class ServletWebServerInitializedEventListener implements ApplicationList
         if (!(webServer instanceof TomcatWebServer)) {
             log.info("Unknown web server type: {}, ignore tomcat executor metrics", webServer.getClass().getName());
             return;
-        }
-        TomcatWebServer tomcatWebServer = (TomcatWebServer) webServer;
-        ProtocolHandler protocolHandler = tomcatWebServer.getTomcat().getConnector().getProtocolHandler();
-        log.debug("protocolHandler: {}", protocolHandler);
-        if (protocolHandler == null) {
-            return;
-        }
-        Executor executor = protocolHandler.getExecutor();
-        log.debug("executor: {}", executor);
-        if (executor == null) {
-            return;
-        }
-        if (executor instanceof ThreadPoolExecutor) {
-            ThreadPoolExecutor threadExecutor = (ThreadPoolExecutor) executor;
-            registry.gauge("tomcat.threads.max", threadExecutor, ThreadPoolExecutor::getMaximumPoolSize);
-            registry.gauge("tomcat.threads.current", threadExecutor, ThreadPoolExecutor::getPoolSize);
-            registry.gauge("tomcat.threads.busy", threadExecutor, ThreadPoolExecutor::getActiveCount);
-            log.info("Tomcat thread pool metrics inited");
-        } else {
-            log.warn("Unknown executor type: {}, ignore tomcat executor metrics", executor.getClass().getName());
         }
     }
 }
