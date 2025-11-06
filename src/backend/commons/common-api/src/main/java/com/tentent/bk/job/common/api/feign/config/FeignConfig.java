@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.config;
+package com.tentent.bk.job.common.api.feign.config;
 
 import com.tencent.bk.job.common.util.http.JobHttpClientConnectionManagerFactory;
 import feign.Client;
