@@ -27,41 +27,45 @@ package com.tencent.bk.job.common.service.feign.client;
 import feign.Client;
 import feign.Request;
 import feign.Response;
+import feign.httpclient.ApacheHttpClient;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 
 /**
  * FeignClient抛出的原始异常信息中仅包含负载均衡解析前的服务名称信息，
- * 当前类用于覆盖默认Client.Default以便观察FeignClient调用异常时的真实请求信息（URL等）
+ * 当前类用于包装ApacheHttpClient以便观察FeignClient调用异常时的真实请求信息（URL等）
  */
 @Slf4j
-public class WatchableFeignClient extends Client.Default {
+public class WatchableFeignHttpClient implements Client {
+    private final ApacheHttpClient apacheHttpClient;
 
-    public WatchableFeignClient(SSLSocketFactory sslContextFactory, HostnameVerifier hostnameVerifier) {
-        super(sslContextFactory, hostnameVerifier);
+    public WatchableFeignHttpClient(ApacheHttpClient  apacheHttpClient) {
+        this.apacheHttpClient = apacheHttpClient;
     }
 
     @Override
     public Response execute(Request request, Request.Options options) throws IOException {
+        long start = System.currentTimeMillis();
         try {
-            Response response = super.execute(request, options);
+            Response response = apacheHttpClient.execute(request, options);
+            long cost = System.currentTimeMillis() - start;
             log.debug(
-                "SucceedToExecFeignRequest, method={}, url={}",
+                "SucceedToExecFeignRequest, cost={}ms, method={}, url={}",
+                cost,
                 request.httpMethod().name(),
                 request.url()
             );
             return response;
         } catch (Exception e) {
+            long cost = System.currentTimeMillis() - start;
             log.warn(
-                "FailToExecFeignRequest, method={}, url={}",
+                "FailToExecFeignRequest, cost={}ms, method={}, url={}",
+                cost,
                 request.httpMethod().name(),
                 request.url()
             );
             throw e;
         }
     }
-
 }

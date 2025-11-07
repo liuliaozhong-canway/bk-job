@@ -1078,6 +1078,12 @@ executeConfig:
   jvmOptions: "-Xms512m -Xmx512m -XX:NewRatio=1 -XX:SurvivorRatio=8"
   # Feign相关配置块
   feign:
+    # Http类型的客户端配置
+    httpclient :
+      # 最大连接数
+      maxConnections : 300
+      # 单个路由地址的最大连接数
+      maxConnectionsPerRoute : 300
     # 客户端配置
     client:
       config:
