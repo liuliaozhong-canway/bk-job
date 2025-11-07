@@ -42,6 +42,7 @@ import org.springframework.cloud.loadbalancer.config.BlockingLoadBalancerClientA
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.cloud.openfeign.loadbalancer.FeignLoadBalancerAutoConfiguration;
 import org.springframework.cloud.openfeign.loadbalancer.RetryableFeignBlockingLoadBalancerClient;
+import org.springframework.cloud.openfeign.support.FeignHttpClientProperties;
 import org.springframework.context.annotation.Bean;
 
 /**
@@ -52,10 +53,14 @@ import org.springframework.context.annotation.Bean;
 @AutoConfigureAfter(BlockingLoadBalancerClientAutoConfiguration.class)
 public class JobFeignLoadBalancerAutoConfiguration {
 
-    private final FeignHttpClientFactory httpClientFactory;
+    @Bean
+    public FeignHttpClientFactory feignHttpClientFactory(FeignHttpClientProperties httpClientProperties) {
+        return new FeignHttpClientFactory(httpClientProperties);
+    }
 
-    public JobFeignLoadBalancerAutoConfiguration(FeignHttpClientFactory httpClientFactory) {
-        this.httpClientFactory = httpClientFactory;
+    @Bean
+    public HttpClientConnectionManager feignClientConnectionManager(FeignHttpClientFactory feignHttpClientFactory) {
+        return feignHttpClientFactory.feignClientConnectionManager();
     }
 
     @Bean
@@ -67,9 +72,10 @@ public class JobFeignLoadBalancerAutoConfiguration {
     public Client feignRetryClient(LoadBalancerClient loadBalancerClient,
                                    LoadBalancedRetryFactory loadBalancedRetryFactory,
                                    LoadBalancerClientFactory loadBalancerClientFactory,
+                                   FeignHttpClientFactory feignHttpClientFactory,
                                    HttpClientConnectionManager connectionManager) {
         log.info("Initializing custom RetryableFeignBlockingLoadBalancerClient");
-        ApacheHttpClient apacheHttpClient = httpClientFactory.createApacheHttpClient(connectionManager);
+        ApacheHttpClient apacheHttpClient = feignHttpClientFactory.createApacheHttpClient(connectionManager);
         WatchableFeignHttpClient watchableFeignHttpClient = new WatchableFeignHttpClient(apacheHttpClient);
         return new RetryableFeignBlockingLoadBalancerClient(
             watchableFeignHttpClient,

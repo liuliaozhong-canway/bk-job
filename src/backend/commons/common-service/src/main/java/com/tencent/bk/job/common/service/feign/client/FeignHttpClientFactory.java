@@ -36,10 +36,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.StandardHttpRequestRetryHandler;
 import org.apache.http.ssl.SSLContexts;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.openfeign.support.FeignHttpClientProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
 
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -50,18 +47,15 @@ import java.util.concurrent.TimeUnit;
  * 构建Feign使用的Apache HttpClient实例，统一管理连接池与超时配置。
  */
 @Slf4j
-@Component
 public class FeignHttpClientFactory {
 
     private final FeignHttpClientProperties httpClientProperties;
 
-    @Autowired
     public FeignHttpClientFactory(FeignHttpClientProperties httpClientProperties) {
         this.httpClientProperties = httpClientProperties;
     }
 
-    @Bean
-    public HttpClientConnectionManager feignClientConnectionManager(FeignHttpClientProperties httpClientProperties) {
+    public HttpClientConnectionManager feignClientConnectionManager() {
         LayeredConnectionSocketFactory sslSocketFactory = null;
         try {
             sslSocketFactory = new SSLConnectionSocketFactory(
