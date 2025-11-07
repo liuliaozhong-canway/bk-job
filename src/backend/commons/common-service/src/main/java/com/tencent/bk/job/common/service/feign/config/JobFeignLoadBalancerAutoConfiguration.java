@@ -24,9 +24,12 @@
 
 package com.tencent.bk.job.common.service.feign.config;
 
-import com.tencent.bk.job.common.service.feign.client.WatchableFeignClient;
+import com.tencent.bk.job.common.service.feign.client.FeignHttpClientFactory;
+import com.tencent.bk.job.common.service.feign.client.WatchableFeignHttpClient;
 import feign.Client;
+import feign.httpclient.ApacheHttpClient;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -49,6 +52,12 @@ import org.springframework.context.annotation.Bean;
 @AutoConfigureAfter(BlockingLoadBalancerClientAutoConfiguration.class)
 public class JobFeignLoadBalancerAutoConfiguration {
 
+    private final FeignHttpClientFactory httpClientFactory;
+
+    public JobFeignLoadBalancerAutoConfiguration(FeignHttpClientFactory httpClientFactory) {
+        this.httpClientFactory = httpClientFactory;
+    }
+
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnClass(name = "org.springframework.retry.support.RetryTemplate")
@@ -57,10 +66,13 @@ public class JobFeignLoadBalancerAutoConfiguration {
         matchIfMissing = true)
     public Client feignRetryClient(LoadBalancerClient loadBalancerClient,
                                    LoadBalancedRetryFactory loadBalancedRetryFactory,
-                                   LoadBalancerClientFactory loadBalancerClientFactory) {
-        log.info("feignRetryClient init");
+                                   LoadBalancerClientFactory loadBalancerClientFactory,
+                                   HttpClientConnectionManager connectionManager) {
+        log.info("Initializing custom RetryableFeignBlockingLoadBalancerClient");
+        ApacheHttpClient apacheHttpClient = httpClientFactory.createApacheHttpClient(connectionManager);
+        WatchableFeignHttpClient watchableFeignHttpClient = new WatchableFeignHttpClient(apacheHttpClient);
         return new RetryableFeignBlockingLoadBalancerClient(
-            new WatchableFeignClient(null, null),
+            watchableFeignHttpClient,
             loadBalancerClient,
             loadBalancedRetryFactory,
             loadBalancerClientFactory

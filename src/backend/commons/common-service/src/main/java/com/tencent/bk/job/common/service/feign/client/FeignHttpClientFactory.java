@@ -22,10 +22,9 @@
  * IN THE SOFTWARE.
  */
 
-package com.tentent.bk.job.common.api.feign.config;
+package com.tencent.bk.job.common.service.feign.client;
 
 import com.tencent.bk.job.common.util.http.JobHttpClientConnectionManagerFactory;
-import feign.Client;
 import feign.httpclient.ApacheHttpClient;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.config.RequestConfig;
@@ -37,22 +36,29 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.StandardHttpRequestRetryHandler;
 import org.apache.http.ssl.SSLContexts;
-import org.springframework.cloud.client.loadbalancer.LoadBalancedRetryFactory;
-import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
-import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
-import org.springframework.cloud.openfeign.loadbalancer.RetryableFeignBlockingLoadBalancerClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.openfeign.support.FeignHttpClientProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 构建Feign使用的Apache HttpClient实例，统一管理连接池与超时配置。
+ */
 @Slf4j
-@Configuration
-public class FeignConfig {
+@Component
+public class FeignHttpClientFactory {
+
+    private final FeignHttpClientProperties httpClientProperties;
+
+    @Autowired
+    public FeignHttpClientFactory(FeignHttpClientProperties httpClientProperties) {
+        this.httpClientProperties = httpClientProperties;
+    }
 
     @Bean
     public HttpClientConnectionManager feignClientConnectionManager(FeignHttpClientProperties httpClientProperties) {
@@ -76,11 +82,11 @@ public class FeignConfig {
         );
     }
 
-    public ApacheHttpClient getApacheHttpClient(FeignHttpClientProperties httpClientProperties,
-                                                HttpClientConnectionManager feignClientConnectionManager) {
+    public ApacheHttpClient createApacheHttpClient(HttpClientConnectionManager feignClientConnectionManager) {
         RequestConfig defaultRequestConfig = RequestConfig.custom()
             .setConnectTimeout(httpClientProperties.getConnectionTimeout())
-            .setRedirectsEnabled(httpClientProperties.isFollowRedirects()).build();
+            .setRedirectsEnabled(httpClientProperties.isFollowRedirects())
+            .build();
         HttpClientBuilder httpClientBuilder = HttpClientBuilder.create()
             .setDefaultRequestConfig(defaultRequestConfig)
             .evictExpiredConnections()
@@ -93,20 +99,5 @@ public class FeignConfig {
         httpClientBuilder.setConnectionManager(feignClientConnectionManager);
         httpClient = httpClientBuilder.build();
         return new ApacheHttpClient(httpClient);
-    }
-
-    @Bean
-    public Client feignClient(FeignHttpClientProperties httpClientProperties,
-                              HttpClientConnectionManager feignClientConnectionManager,
-                              LoadBalancerClient loadBalancerClient,
-                              LoadBalancedRetryFactory loadBalancedRetryFactory,
-                              LoadBalancerClientFactory loadBalancerClientFactory) {
-        ApacheHttpClient delegate = getApacheHttpClient(httpClientProperties, feignClientConnectionManager);
-        return new RetryableFeignBlockingLoadBalancerClient(
-            delegate,
-            loadBalancerClient,
-            loadBalancedRetryFactory,
-            loadBalancerClientFactory
-        );
     }
 }

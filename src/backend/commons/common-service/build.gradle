@@ -56,6 +56,7 @@ dependencies {
     api 'io.jsonwebtoken:jjwt'
     api 'io.prometheus:simpleclient_pushgateway'
     api 'io.micrometer:micrometer-registry-prometheus'
+    api "io.github.openfeign:feign-httpclient"
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.mockito:mockito-inline'
 }
