@@ -60,20 +60,30 @@ public class CallbackListener {
                 return;
             }
             callbackDTO.setCallbackUrl(null);
-            try {
-                // TODO 需要优化，返回application/json
+
+            final int maxRetry = 10;
+            int attempt = 0;
+            long sleepMillis = 100;
+
+            while (attempt < maxRetry) {
+                attempt++;
                 try {
-                    String rst = HttpConPoolUtil.post(callbackUrl, JsonUtils.toJson(callbackDTO));
-                    log.info("Callback success, taskInstanceId: {}, result: {}", taskInstanceId, rst);
-                } catch (Throwable e) { //出错重试一次
-                    String errorMsg = "Callback fail, taskInstanceId: " + taskInstanceId;
-                    log.warn(errorMsg, e);
-                    String rst = HttpConPoolUtil.post(callbackUrl, JsonUtils.toJson(callbackDTO));
-                    log.info("Retry callback success, taskInstanceId: {}, result: {}", taskInstanceId, rst);
+                    String result = HttpConPoolUtil.post(callbackUrl, JsonUtils.toJson(callbackDTO));
+                    log.info("Callback success (attempt {}), taskInstanceId: {}, result: {}", attempt, taskInstanceId, result);
+                    return;
+                } catch (Throwable ex) {
+                    log.warn("Callback fail (attempt {}), taskInstanceId: {}", attempt, taskInstanceId, ex);
+                    if (attempt >= maxRetry) {
+                        log.warn("Callback give up after {} attempts, taskInstanceId: {}", maxRetry, taskInstanceId, ex);
+                    } else {
+                        try {
+                            Thread.sleep(sleepMillis);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            log.warn("Callback retry sleep interrupted", e);
+                        }
+                    }
                 }
-            } catch (Throwable e) {
-                String errorMsg = "Callback fail, taskInstanceId: " + taskInstanceId;
-                log.warn(errorMsg, e);
             }
         } catch (Throwable e) {
             String errorMsg = "Callback fail, taskInstanceId: " + taskInstanceId;

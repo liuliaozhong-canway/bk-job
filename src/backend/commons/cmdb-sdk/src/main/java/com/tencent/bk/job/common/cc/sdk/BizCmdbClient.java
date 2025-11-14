@@ -312,7 +312,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                                          String uri,
                                          EsbReq reqBody,
                                          TypeReference<EsbResp<R>> typeReference) {
-        int maxRetry = 3;
+        int maxRetry = 10;
         int retryCount = 0;
         while (true) {
             try {
