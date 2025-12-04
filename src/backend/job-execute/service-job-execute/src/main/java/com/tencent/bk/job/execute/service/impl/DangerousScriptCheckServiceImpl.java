@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
@@ -74,9 +75,33 @@ public class DangerousScriptCheckServiceImpl implements DangerousScriptCheckServ
 
     @Override
     public List<ServiceScriptCheckResultItemDTO> check(ScriptTypeEnum scriptType, String content) {
-        InternalResponse<List<ServiceScriptCheckResultItemDTO>> response =
-            scriptCheckResource.check(new ServiceCheckScriptRequest(content, scriptType.getValue()));
-        return response.isSuccess() ? response.getData() : Collections.emptyList();
+        final int maxRetry = 5;
+        int attempt = 0;
+        while (true) {
+            attempt++;
+            try {
+                InternalResponse<List<ServiceScriptCheckResultItemDTO>> response =
+                    scriptCheckResource.check(new ServiceCheckScriptRequest(content, scriptType.getValue()));
+                if (response == null || response.getData() == null) {
+                    throw new InternalException("Script check response invalid: response or data is null");
+                }
+                return response.getData();
+            } catch (Exception ex) {
+                if (attempt >= maxRetry) {
+                    log.error("Max retry reached for script check. attempt={}, ex={}", attempt, ex.getMessage(), ex);
+                    throw ex;
+                }
+                // 当前在主线程中重试，轻量退避，50ms, 100ms, 150ms...
+                int backoff = 50 * attempt;
+                log.warn("Script check failed, retrying. attempt={}, backoff={}ms, ex={}", attempt, backoff,
+                    ex.getMessage());
+                try {
+                    Thread.sleep(backoff);
+                } catch (InterruptedException ignored) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
     }
 
     @Override
