@@ -146,6 +146,9 @@ data:
           num: {{ .Values.cmdb.query.threads.num }}
       server:
         url: {{ .Values.bkCmdbUrl }}
+      resource:
+        watch:
+          fallback-minutes: {{ .Values.cmdb.resource.watch.fallbackMinutes }}
     nodeman:
       server:
         url: {{ .Values.bkNodemanUrl }}

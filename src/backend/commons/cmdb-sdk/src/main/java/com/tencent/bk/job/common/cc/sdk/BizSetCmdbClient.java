@@ -42,6 +42,7 @@ import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.BizSetEventDetail;
 import com.tencent.bk.job.common.cc.model.result.BizSetRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
+import com.tencent.bk.job.common.cc.util.CmdbResponseCheckUtil;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.esb.config.AppProperties;
@@ -306,6 +307,7 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
                 new TypeReference<EsbResp<ResourceWatchResult<BizSetEventDetail>>>() {
                 },
                 HttpHelperFactory.getLongRetryableHttpHelper());
+            CmdbResponseCheckUtil.checkResourceWatchRespCode(resp);
             if (!resp.getResult()) {
                 throw new InternalCmdbException(ErrorCode.CMDB_API_DATA_ERROR, null);
             }
@@ -332,6 +334,7 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
                 new TypeReference<EsbResp<ResourceWatchResult<BizSetRelationEventDetail>>>() {
                 },
                 HttpHelperFactory.getLongRetryableHttpHelper());
+            CmdbResponseCheckUtil.checkResourceWatchRespCode(resp);
             if (!resp.getResult()) {
                 throw new InternalCmdbException(ErrorCode.CMDB_API_DATA_ERROR, null);
             }

@@ -22,46 +22,36 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.config;
+package com.tencent.bk.job.common.cc.util;
 
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import com.tencent.bk.job.common.cc.constants.ResourceWatchExceptionCodeEnum;
+import com.tencent.bk.job.common.cc.exception.CmdbResourceWatchException;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.exception.InternalCmdbException;
+import lombok.extern.slf4j.Slf4j;
 
-@Data
-@Configuration
-public class CmdbConfig {
+/**
+ * CMDB请求响应体检查工具类
+ */
+@Slf4j
+public class CmdbResponseCheckUtil {
 
-    @Value("${cmdb.default.supplier.account:0}")
-    private String defaultSupplierAccount;
+    /**
+     * 检查CMDB资源监听响应码，如果不符合预期抛出异常
+     */
+    public static void checkResourceWatchRespCode(EsbResp<?> esbResp) {
+        if (esbResp == null) {
+            throw new InternalCmdbException("Watch response is null", ErrorCode.CMDB_API_DATA_ERROR);
+        }
+        if (esbResp.getCode() == 0) {
+            return;
+        }
 
-    @Value("${cmdb.query.threads.num:20}")
-    private int cmdbQueryThreadsNum;
-
-    @Value("${cmdb.interface.briefCacheTopo.enabled:false}")
-    private Boolean enableInterfaceBriefCacheTopo;
-
-    @Value("${cmdb.interface.retry.enabled:false}")
-    private Boolean enableInterfaceRetry;
-
-    @Value("${cmdb.interface.findHostRelation.longTerm.concurrency:20}")
-    private Integer findHostRelationLongTermConcurrency;
-
-    @Value("${cmdb.interface.optimize.lock.enabled:false}")
-    private Boolean enableLockOptimize;
-
-    @Value("${cmdb.interface.flowControl.enabled:false}")
-    private Boolean enableFlowControl;
-
-    @Value("${cmdb.interface.flowControl.precision:20}")
-    private Integer flowControlPrecision;
-
-    @Value("${cmdb.interface.flowControl.default.limit:500}")
-    private Integer flowControlDefaultLimit;
-
-    @Value("${cmdb.interface.flowControl.resources:get_biz_brief_cache_topo:1500}")
-    private String flowControlResourcesStr;
-
-    @Value("${cmdb.resource.watch.fallback-minutes: 5}")
-    private Integer resourceWatchFallbackMinutes;
+        int code = esbResp.getCode();
+        if (ResourceWatchExceptionCodeEnum.isValid(code)) {
+            log.warn("CMDB watch response code not as expected, code={}, msg={}", code, esbResp.getMessage());
+            throw new CmdbResourceWatchException("Response code not as expected", ErrorCode.CMDB_API_DATA_ERROR);
+        }
+    }
 }

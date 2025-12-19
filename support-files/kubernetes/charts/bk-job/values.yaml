@@ -654,6 +654,10 @@ cmdb:
     threads:
       # 普通业务从CMDB查询主机的线程数量
       num: 20
+  resource:
+    watch:
+      # 监听事件的起始时间，默认为5分钟之前, 最大30分钟
+      fallbackMinutes: 5
 
 ## 权限中心配置
 iam:

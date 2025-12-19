@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.service.impl.sync;
 
+import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
@@ -80,8 +81,9 @@ public class HostRelationEventWatcher extends AbstractCmdbResourceEventWatcher<H
                                     ApplicationHostDAO applicationHostDAO,
                                     HostTopoDAO hostTopoDAO,
                                     HostCache hostCache,
-                                    CmdbEventCursorManager cmdbEventCursorManager) {
-        super("hostRelation", redisTemplate, tracer, cmdbEventSampler, cmdbEventCursorManager);
+                                    CmdbEventCursorManager cmdbEventCursorManager,
+                                    CmdbConfig cmdbConfig) {
+        super("hostRelation", redisTemplate, tracer, cmdbEventSampler, cmdbEventCursorManager, cmdbConfig);
         this.tracer = tracer;
         this.cmdbEventSampler = cmdbEventSampler;
         this.bizCmdbClient = bizCmdbClient;

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.service.impl.sync;
 
+import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
@@ -77,8 +78,9 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
                             @Qualifier(GseConfig.MANAGE_BEAN_AGENT_STATE_CLIENT)
                                 AgentStateClient agentStateClient,
                             JobManageConfig jobManageConfig,
-                            CmdbEventCursorManager cmdbEventCursorManager) {
-        super("host", redisTemplate, tracer, cmdbEventSampler, cmdbEventCursorManager);
+                            CmdbEventCursorManager cmdbEventCursorManager,
+                            CmdbConfig cmdbConfig) {
+        super("host", redisTemplate, tracer, cmdbEventSampler, cmdbEventCursorManager, cmdbConfig);
         this.tracer = tracer;
         this.cmdbEventSampler = cmdbEventSampler;
         this.bizCmdbClient = bizCmdbClient;

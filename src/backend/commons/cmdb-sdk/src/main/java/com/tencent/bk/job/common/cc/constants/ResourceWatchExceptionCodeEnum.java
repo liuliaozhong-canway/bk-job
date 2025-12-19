@@ -22,46 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.config;
+package com.tencent.bk.job.common.cc.constants;
 
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+/**
+ * 资源监听异常错误码枚举
+ */
+public enum ResourceWatchExceptionCodeEnum {
+    // 事件节点不存在
+    EVENT_NODE_NOT_EXIST(1103007),
+    // 事件详情不存在
+    EVENT_DETAIL_NOT_EXIST(1103008);
 
-@Data
-@Configuration
-public class CmdbConfig {
+    private final Integer code;
 
-    @Value("${cmdb.default.supplier.account:0}")
-    private String defaultSupplierAccount;
+    ResourceWatchExceptionCodeEnum(Integer code) {
+        this.code = code;
+    }
 
-    @Value("${cmdb.query.threads.num:20}")
-    private int cmdbQueryThreadsNum;
+    public Integer getCode() {
+        return code;
+    }
 
-    @Value("${cmdb.interface.briefCacheTopo.enabled:false}")
-    private Boolean enableInterfaceBriefCacheTopo;
+    public static ResourceWatchExceptionCodeEnum valueOf(Integer code) {
+        if (code == null) return null;
+        for (ResourceWatchExceptionCodeEnum errorCodeEnum : values()) {
+            if (errorCodeEnum.getCode().equals(code)) {
+                return errorCodeEnum;
+            }
+        }
+        return null;
+    }
 
-    @Value("${cmdb.interface.retry.enabled:false}")
-    private Boolean enableInterfaceRetry;
-
-    @Value("${cmdb.interface.findHostRelation.longTerm.concurrency:20}")
-    private Integer findHostRelationLongTermConcurrency;
-
-    @Value("${cmdb.interface.optimize.lock.enabled:false}")
-    private Boolean enableLockOptimize;
-
-    @Value("${cmdb.interface.flowControl.enabled:false}")
-    private Boolean enableFlowControl;
-
-    @Value("${cmdb.interface.flowControl.precision:20}")
-    private Integer flowControlPrecision;
-
-    @Value("${cmdb.interface.flowControl.default.limit:500}")
-    private Integer flowControlDefaultLimit;
-
-    @Value("${cmdb.interface.flowControl.resources:get_biz_brief_cache_topo:1500}")
-    private String flowControlResourcesStr;
-
-    @Value("${cmdb.resource.watch.fallback-minutes: 5}")
-    private Integer resourceWatchFallbackMinutes;
+    public static boolean isValid(Integer code) {
+        if (code == null) {
+            return false;
+        }
+        return valueOf(code) != null;
+    }
 }

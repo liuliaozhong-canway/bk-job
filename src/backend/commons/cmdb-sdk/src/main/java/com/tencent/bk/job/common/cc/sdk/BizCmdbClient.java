@@ -102,6 +102,7 @@ import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.model.result.SearchAppResult;
 import com.tencent.bk.job.common.cc.model.result.SearchCloudAreaResult;
 import com.tencent.bk.job.common.cc.model.result.SearchDynamicGroupResult;
+import com.tencent.bk.job.common.cc.util.CmdbResponseCheckUtil;
 import com.tencent.bk.job.common.cc.util.TopologyUtil;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
@@ -1385,6 +1386,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
             new TypeReference<EsbResp<ResourceWatchResult<HostEventDetail>>>() {
             },
             HttpHelperFactory.getLongRetryableHttpHelper());
+        CmdbResponseCheckUtil.checkResourceWatchRespCode(esbResp);
         return esbResp.getData();
     }
 
@@ -1404,6 +1406,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
             new TypeReference<EsbResp<ResourceWatchResult<HostRelationEventDetail>>>() {
             },
             HttpHelperFactory.getLongRetryableHttpHelper());
+        CmdbResponseCheckUtil.checkResourceWatchRespCode(esbResp);
         return esbResp.getData();
     }
 
@@ -1424,6 +1427,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
             new TypeReference<EsbResp<ResourceWatchResult<BizEventDetail>>>() {
             },
             HttpHelperFactory.getLongRetryableHttpHelper());
+        CmdbResponseCheckUtil.checkResourceWatchRespCode(esbResp);
         return esbResp.getData();
     }
 

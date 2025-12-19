@@ -22,46 +22,18 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.config;
+package com.tencent.bk.job.common.cc.exception;
 
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.model.error.ErrorType;
 
-@Data
-@Configuration
-public class CmdbConfig {
+/**
+ * CMDB资源监听异常
+ */
+public class CmdbResourceWatchException extends ServiceException {
 
-    @Value("${cmdb.default.supplier.account:0}")
-    private String defaultSupplierAccount;
+    public CmdbResourceWatchException(String message, Integer errorCode) {
+        super(message, ErrorType.INTERNAL, errorCode);
+    }
 
-    @Value("${cmdb.query.threads.num:20}")
-    private int cmdbQueryThreadsNum;
-
-    @Value("${cmdb.interface.briefCacheTopo.enabled:false}")
-    private Boolean enableInterfaceBriefCacheTopo;
-
-    @Value("${cmdb.interface.retry.enabled:false}")
-    private Boolean enableInterfaceRetry;
-
-    @Value("${cmdb.interface.findHostRelation.longTerm.concurrency:20}")
-    private Integer findHostRelationLongTermConcurrency;
-
-    @Value("${cmdb.interface.optimize.lock.enabled:false}")
-    private Boolean enableLockOptimize;
-
-    @Value("${cmdb.interface.flowControl.enabled:false}")
-    private Boolean enableFlowControl;
-
-    @Value("${cmdb.interface.flowControl.precision:20}")
-    private Integer flowControlPrecision;
-
-    @Value("${cmdb.interface.flowControl.default.limit:500}")
-    private Integer flowControlDefaultLimit;
-
-    @Value("${cmdb.interface.flowControl.resources:get_biz_brief_cache_topo:1500}")
-    private String flowControlResourcesStr;
-
-    @Value("${cmdb.resource.watch.fallback-minutes: 5}")
-    private Integer resourceWatchFallbackMinutes;
 }

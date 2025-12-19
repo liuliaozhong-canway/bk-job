@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.service.impl.sync;
 
+import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.BizSetRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
@@ -58,14 +59,11 @@ public class BizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher
     private final BizSetCmdbClient bizSetCmdbClient;
 
     @Autowired
-    public BizSetRelationEventWatcher(RedisTemplate<String, String> redisTemplate,
-                                      Tracer tracer,
-                                      CmdbEventSampler cmdbEventSampler,
-                                      ApplicationService applicationService,
-                                      BizSetService bizSetService,
-                                      BizSetCmdbClient bizSetCmdbClient,
-                                      CmdbEventCursorManager cmdbEventCursorManager) {
-        super("bizSetRelation", redisTemplate, tracer, cmdbEventSampler, cmdbEventCursorManager);
+    public BizSetRelationEventWatcher(RedisTemplate<String, String> redisTemplate, Tracer tracer,
+                                      CmdbEventSampler cmdbEventSampler, ApplicationService applicationService,
+                                      BizSetService bizSetService, BizSetCmdbClient bizSetCmdbClient,
+                                      CmdbEventCursorManager cmdbEventCursorManager, CmdbConfig cmdbConfig) {
+        super("bizSetRelation", redisTemplate, tracer, cmdbEventSampler, cmdbEventCursorManager, cmdbConfig);
         this.applicationService = applicationService;
         this.bizSetService = bizSetService;
         this.bizSetCmdbClient = bizSetCmdbClient;

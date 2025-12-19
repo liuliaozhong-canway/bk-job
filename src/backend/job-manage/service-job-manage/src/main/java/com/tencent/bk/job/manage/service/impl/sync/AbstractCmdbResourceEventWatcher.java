@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.manage.service.impl.sync;
 
+import com.tencent.bk.job.common.cc.config.CmdbConfig;
+import com.tencent.bk.job.common.cc.exception.CmdbResourceWatchException;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.redis.util.HeartBeatRedisLock;
@@ -39,6 +41,7 @@ import com.tencent.bk.job.manage.service.CmdbEventCursorManager;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.cloud.sleuth.annotation.NewSpan;
@@ -62,6 +65,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
     private final Tracer tracer;
     private final CmdbEventSampler cmdbEventSampler;
     private final CmdbEventCursorManager cmdbEventCursorManager;
+    private final CmdbConfig cmdbConfig;
     /**
      * 事件监听任务分布式锁KEY
      */
@@ -81,7 +85,8 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
                                             RedisTemplate<String, String> redisTemplate,
                                             Tracer tracer,
                                             CmdbEventSampler cmdbEventSampler,
-                                            CmdbEventCursorManager cmdbEventCursorManager) {
+                                            CmdbEventCursorManager cmdbEventCursorManager,
+                                            CmdbConfig cmdbConfig) {
         this.machineIp = IpUtils.getFirstMachineIP();
         this.redisTemplate = redisTemplate;
         this.tracer = tracer;
@@ -90,6 +95,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
         this.watcherResourceName = watcherResourceName;
         this.setName(watcherResourceName);
         this.redisLockKey = "watch-cmdb-" + this.watcherResourceName + "-lock";
+        this.cmdbConfig = cmdbConfig;
     }
 
     @NewSpan
@@ -132,13 +138,14 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
         log.info("Start watch {} resource at {},{}", watcherResourceName, TimeUtil.getCurrentTimeStr("HH:mm:ss"),
             System.currentTimeMillis());
         String cursor = cmdbEventCursorManager.tryToLoadLatestCursor(watcherResourceName);
+        // 给个错误的游标用于测试
+        cursor = "MQ0xDTVlYTZkM2YzOTRjMWY1ZDk4NmU5YmQ4Ng1ub0V2ZW50DTENMQ0=";
         while (isWatchingEnabled()) {
             Span span = SpanUtil.buildNewSpan(this.tracer, "watchAndHandle-" + this.watcherResourceName + "Events");
             try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
                 ResourceWatchResult<E> watchResult;
                 if (cursor == null) {
-                    // 从10分钟前开始watch
-                    long startTime = System.currentTimeMillis() / 1000 - 10 * 60;
+                    long startTime = getWatchStartTime();
                     log.info("Start watch {} from startTime:{}", this.watcherResourceName,
                         TimeUtil.formatTime(startTime * 1000));
                     watchResult = fetchEventsByStartTime(startTime);
@@ -153,6 +160,18 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
                 ThreadUtils.sleep(1_000);
             } catch (Throwable t) {
                 span.error(t);
+
+                // cmdb监听接口返回异常数据，比如cursor失效了，回退到事件起始时间监听，避免持续报错
+                CmdbResourceWatchException watchEx =
+                    ExceptionUtils.throwableOfType(t, CmdbResourceWatchException.class);
+                if (watchEx != null) {
+                    cursor = null;
+                    log.warn("CMDB resource watch not as expected, fallback {} minute watch, message={}.",
+                        cmdbConfig.getResourceWatchFallbackMinutes(), watchEx.getMessage());
+                    ThreadUtils.sleep(1_000);
+                    continue;
+                }
+
                 log.error("EventWatch thread fail", t);
                 // 如果处理事件过程中碰到异常，等待5s重试
                 ThreadUtils.sleep(5_000);
@@ -208,6 +227,20 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
             initBeforeWatch();
             initedBeforeWatch = true;
         }
+    }
+
+    /**
+     * 事件监听起始时间，默认取当前时间往前5分钟，最大不超过30分钟
+     */
+    private long getWatchStartTime() {
+        Integer minutes = cmdbConfig.getResourceWatchFallbackMinutes();
+        if (minutes <= 0) {
+            minutes = 5;
+        }
+        if (minutes > 30) {
+            minutes = 5;
+        }
+        return System.currentTimeMillis() / 1000 - minutes * 60L;
     }
 
     /**
