@@ -13,21 +13,21 @@ local user_limit = tonumber(ARGV[6])
 -- check
 if system_limit > 0 then
     local system_count = tonumber(redis.call('GET', system_key) or "0")
-    if system_count > system_limit then
+    if system_count >= system_limit then
         return "system_quota_limit"
     end
 end
 
 if resource_scope_id and resource_scope_id ~= "" and resource_scope_limit > 0 then
     local scope_count = tonumber(redis.call('HGET', resource_scope_key, resource_scope_id) or "0")
-    if scope_count > resource_scope_limit then
+    if scope_count >= resource_scope_limit then
         return "resource_scope_quota_limit"
     end
 end
 
 if user_id and user_id ~= "" and user_limit > 0 then
     local user_count = tonumber(redis.call('HGET', user_key, user_id) or "0")
-    if user_count > user_limit then
+    if user_count >= user_limit then
         return "user_quota_limit"
     end
 end

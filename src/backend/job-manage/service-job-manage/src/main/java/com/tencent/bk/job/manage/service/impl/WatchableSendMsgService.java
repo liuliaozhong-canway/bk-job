@@ -185,7 +185,7 @@ public class WatchableSendMsgService {
      */
     private void checkSendNotifyQuotaLimit(Long appId, String triggerUser) {
         ResourceScope resourceScope = null;
-        if (appId == null) {
+        if (appId != null) {
             resourceScope = GlobalAppScopeMappingService.get().getScopeByAppId(appId);
         }
         ResourceQuotaCheckResultEnum checkResult = sendNotifyResourceQuotaManager.checkAndIncrement(
@@ -213,7 +213,7 @@ public class WatchableSendMsgService {
      */
     private void sendNotifyLimitRollback(Long appId, String triggerUser) {
         ResourceScope resourceScope = null;
-        if (appId == null) {
+        if (appId != null) {
             resourceScope = GlobalAppScopeMappingService.get().getScopeByAppId(appId);
         }
         sendNotifyResourceQuotaManager.rollback(

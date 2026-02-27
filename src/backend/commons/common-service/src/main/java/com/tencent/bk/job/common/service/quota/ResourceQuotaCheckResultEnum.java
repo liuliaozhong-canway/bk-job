@@ -24,6 +24,13 @@
 
 package com.tencent.bk.job.common.service.quota;
 
+import lombok.Getter;
+
+/**
+ * 资源配额校验结果枚举
+ * 注意：枚举值的value字段取值必须与Redis Lua脚本返回值严格保持一致
+ */
+@Getter
 public enum ResourceQuotaCheckResultEnum {
 
     NO_LIMIT("no_limit"),

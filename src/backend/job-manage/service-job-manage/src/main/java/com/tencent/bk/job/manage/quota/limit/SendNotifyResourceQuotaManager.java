@@ -64,17 +64,22 @@ public class SendNotifyResourceQuotaManager {
     private static String CHECK_AND_INCREMENT_LUA_SCRIPT;
     private static String ROLLBACK_LUA_SCRIPT;
 
-    // redis key前缀
-    private static final String SEND_NOTIFY_COUNT_HASH_KEY = "job:manage:send:notify:count";
-    private static final String RESOURCE_SCOPE_SEND_NOTIFY_COUNT_HASH_KEY =
-        "job:manage:send:notify:count:resource_scope";
-    private static final String USER_SEND_NOTIFY_COUNT_HASH_KEY = "job:manage:send:notify:count:user";
+    // 发送消息通知次数key前缀，需拼接当天的日期字符串,
+    private static final String REDIS_KEY_PREFIX_SEND_NOTIFY_COUNT = "job:manage:send:notify:count:";
+    // 资源维度统计发送通知次数的Key前缀, 需拼接当天的日期字符串
+    private static final String REDIS_KEY_PREFIX_RESOURCE_SCOPE_SEND_NOTIFY_COUNT =
+        "job:manage:send:notify:count:resource_scope:";
+    // 用户维度统计发送通知次数的Key前缀, 需拼接当天的日期字符串
+    private static final String REDIS_KEY_PREFIX_USER_SEND_NOTIFY_COUNT = "job:manage:send:notify:count:user:";
 
     // Redis key按天存储，过期时间为1天
     private static final String REDIS_KEY_TTL = "86400";
 
     private static final String METRIC_SEND_NOTIFY_RESOURCE_QUOTA_LIMIT_EXCEED_TOTAL =
         "send_notify_resource_quota_limit_exceed_total";
+
+    // 慢日志阈值，单位毫秒
+    private static final long SLOW_LOG_THRESHOLD_MS = 10;
 
     static {
         loadLuaScript();
@@ -135,13 +140,18 @@ public class SendNotifyResourceQuotaManager {
         );
 
         long cost = System.currentTimeMillis() - startTime;
-        log.debug("Increment send notify limit, resourceScope={}, userId={}, cost: {} ms", scopeUniqueId, userId, cost);
+        if (cost > SLOW_LOG_THRESHOLD_MS) {
+            log.warn("SLOW: Increment send notify limit time over {}ms, resourceScope={}, userId={}, cost: {} ms",
+                SLOW_LOG_THRESHOLD_MS, scopeUniqueId, userId, cost);
+        } else {
+            log.debug("Increment send notify limit, resourceScope={}, userId={}, cost: {} ms",
+                scopeUniqueId, userId, cost);
+        }
 
         ResourceQuotaCheckResultEnum checkResult = ResourceQuotaCheckResultEnum.valOf(result);
         if (checkResult.isExceedLimit()) {
-            recordExceedQuotaLimitRecord(resourceScope, userId);
+            recordExceedQuotaLimitRecord(checkResult, resourceScope, userId);
         }
-
         return checkResult;
     }
 
@@ -162,26 +172,40 @@ public class SendNotifyResourceQuotaManager {
             userId
         );
         long cost = System.currentTimeMillis() - startTime;
-        log.debug("Rollback send notify limit, resourceScope={}, userId={}, cost={}ms", scopeUniqueId, userId, cost);
+        if (cost > SLOW_LOG_THRESHOLD_MS) {
+            log.warn("SLOW: Rollback send notify limit time over {}ms, resourceScope={}, userId={}, cost={}ms",
+                SLOW_LOG_THRESHOLD_MS, scopeUniqueId, userId, cost);
+        } else {
+            log.debug("Rollback send notify limit, resourceScope={}, userId={}, cost={}ms",
+                scopeUniqueId, userId, cost);
+        }
     }
 
     private List<String> getLuaScriptKeys() {
         // redis key按天存储
         List<String> luaScriptKeys = new ArrayList<>();
-        luaScriptKeys.add(SEND_NOTIFY_COUNT_HASH_KEY + ":" + DateUtils.getCurrentDateStr());
-        luaScriptKeys.add(RESOURCE_SCOPE_SEND_NOTIFY_COUNT_HASH_KEY + ":" + DateUtils.getCurrentDateStr());
-        luaScriptKeys.add(USER_SEND_NOTIFY_COUNT_HASH_KEY + ":" + DateUtils.getCurrentDateStr());
+        String dateStr = DateUtils.getCurrentDateStr();
+        luaScriptKeys.add(REDIS_KEY_PREFIX_SEND_NOTIFY_COUNT + dateStr);
+        luaScriptKeys.add(REDIS_KEY_PREFIX_RESOURCE_SCOPE_SEND_NOTIFY_COUNT + dateStr);
+        luaScriptKeys.add(REDIS_KEY_PREFIX_USER_SEND_NOTIFY_COUNT + dateStr);
         return luaScriptKeys;
     }
 
-    private void recordExceedQuotaLimitRecord(ResourceScope resourceScope, String userId) {
+    private void recordExceedQuotaLimitRecord(
+        ResourceQuotaCheckResultEnum checkResult,
+        ResourceScope resourceScope,
+        String userId
+    ) {
         String resourceScopeTag =
             resourceScope != null ? resourceScope.toResourceScopeUniqueId() : CommonMetricValues.NONE;
         String userTag = StringUtils.isNotBlank(userId) ? userId : CommonMetricValues.NONE;
         meterRegistry.counter(
-                METRIC_SEND_NOTIFY_RESOURCE_QUOTA_LIMIT_EXCEED_TOTAL,
-                Tags.of(CommonMetricTags.KEY_RESOURCE_SCOPE, resourceScopeTag)
-                    .and(CommonMetricTags.KEY_USER_ID, userTag)
-            ).increment();
+            METRIC_SEND_NOTIFY_RESOURCE_QUOTA_LIMIT_EXCEED_TOTAL,
+            Tags.of(
+                CommonMetricTags.KEY_RESOURCE_SCOPE, resourceScopeTag,
+                CommonMetricTags.KEY_USER_ID, userTag,
+                CommonMetricTags.KEY_QUOTA_TYPE, checkResult.getValue()
+            )
+        ).increment();
     }
 }
