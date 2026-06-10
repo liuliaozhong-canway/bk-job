@@ -10,7 +10,7 @@ on:
     paths:
       - 'src/backend/**'
   pull_request:
-    branches: [ master, 3.* ]
+    branches: [ master, 3.*, tenant-dev-llz-test ]
     paths:
       - 'src/backend/**'
 
