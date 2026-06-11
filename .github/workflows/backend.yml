@@ -23,6 +23,9 @@ jobs:
 
     container:
       image: docker-bkrepo.cwoa.net/h536b8/job_image_dev/bkjob/job-build-tool:1.0.0
+      credentials:
+        username: liuliaozhong
+        password: aab64c7dfe2a4d389471f7c69ebde05d
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
