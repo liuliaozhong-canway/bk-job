@@ -9,19 +9,24 @@ on:
     paths:
       - 'src/frontend/**'
   pull_request:
-    branches: [ master, 3.* ]
+    branches: [ master, 3.*, tenant-dev-llz-test ]
     paths:
-      - 'src/frontend/**'
+      - 'src/**'
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
+    container:
+      image: docker-bkrepo.cwoa.net/h536b8/job_image_dev/bkjob/job-build-tool:1.0.0
+      credentials:
+        username: liuliaozhong
+        password: aab64c7dfe2a4d389471f7c69ebde05d
+
     steps:
       - uses: actions/checkout@v2
       - run: echo "npm version=$(npm -v)"
       - name: build
-        run: |
-          export JOB_VERSION=3.latest
-          npm i --legacy-peer-deps && npm run build
         working-directory: src/frontend
+        run: |
+          npm i --legacy-peer-deps && npm run build
