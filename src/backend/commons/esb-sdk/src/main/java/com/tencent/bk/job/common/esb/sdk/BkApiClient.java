@@ -335,7 +335,19 @@ public class BkApiClient {
             .setStringEntity(requestInfo.getBody() != null ? jsonMapper.toJson(requestInfo.getBody()) : null)
             .build();
 
-        return chooseHttpHelper(httpHelper).requestForSuccessResp(httpRequest);
+        HttpHelper selectedHttpHelper = chooseHttpHelper(httpHelper);
+        try {
+            return selectedHttpHelper.requestForSuccessResp(httpRequest);
+        } catch (RuntimeException e) {
+            log.error(
+                "BK API HTTP request failed diagnostic|baseAccessUrl={}|method={}|uri={}"
+                    + "|httpHelperSource={}|selectedHttpHelperClass={}|selectedHttpHelperIdentity={}",
+                baseAccessUrl, requestInfo.getMethod(), requestInfo.getUri(),
+                httpHelper == null ? "cached-default" : "explicit",
+                selectedHttpHelper.getClass().getName(), System.identityHashCode(selectedHttpHelper)
+            );
+            throw e;
+        }
     }
 
     private HttpHelper chooseHttpHelper(HttpHelper httpHelper) {
