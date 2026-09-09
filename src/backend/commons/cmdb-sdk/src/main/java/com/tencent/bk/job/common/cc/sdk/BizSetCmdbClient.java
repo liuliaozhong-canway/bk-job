@@ -76,9 +76,10 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
                             BkApiGatewayProperties bkApiGatewayProperties,
                             CmdbConfig cmdbConfig,
                             FlowController flowController,
-                            MeterRegistry meterRegistry) {
+                            MeterRegistry meterRegistry,
+                            boolean sslVerifyEnabled) {
         super(flowController, appProperties, esbProperties,
-            bkApiGatewayProperties, cmdbConfig, meterRegistry, null);
+            bkApiGatewayProperties, cmdbConfig, meterRegistry, null, sslVerifyEnabled);
     }
 
     /**

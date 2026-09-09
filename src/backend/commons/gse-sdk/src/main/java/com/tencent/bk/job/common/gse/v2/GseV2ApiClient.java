@@ -51,8 +51,6 @@ import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.JobHttpRequestRetryHandler;
-import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
-import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -78,7 +76,8 @@ public class GseV2ApiClient extends BkApiClient implements IGseClient {
 
     public GseV2ApiClient(MeterRegistry meterRegistry,
                           AppProperties appProperties,
-                          BkApiGatewayProperties bkApiGatewayProperties) {
+                          BkApiGatewayProperties bkApiGatewayProperties,
+                          boolean sslVerifyEnabled) {
         super(meterRegistry,
             GseMetricNames.GSE_V2_API_METRICS_NAME_PREFIX,
             bkApiGatewayProperties.getGse().getUrl(),
@@ -91,12 +90,12 @@ public class GseV2ApiClient extends BkApiClient implements IGseClient {
                 60,
                 true,
                 new JobHttpRequestRetryHandler(),
-                JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.GSE)
+                sslVerifyEnabled
             )
         );
         gseBkApiAuthorization = BkApiAuthorization.appAuthorization(appProperties.getCode(), appProperties.getSecret());
-        log.info("Init GseV2ApiClient, bkGseApiGatewayUrl: {}, appCode: {}",
-            bkApiGatewayProperties.getGse().getUrl(), appProperties.getCode());
+        log.info("Init GseV2ApiClient, bkGseApiGatewayUrl: {}, appCode: {}, sslVerifyEnabled: {}",
+            bkApiGatewayProperties.getGse().getUrl(), appProperties.getCode(), sslVerifyEnabled);
     }
 
     @Override

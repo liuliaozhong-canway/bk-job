@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpReqGenUtil;
 import com.tencent.bk.job.common.util.http.HttpRequest;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyProperties;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file.worker.config.WorkerConfig;
 import com.tencent.bk.job.file.worker.state.event.WorkerEvent;
@@ -49,7 +50,7 @@ import java.util.List;
 @Service
 public class OpService {
 
-    private final HttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
+    private final HttpHelper httpHelper;
     private final WorkerConfig workerConfig;
     private final FileTaskService fileTaskService;
     private final GatewayInfoService gatewayInfoService;
@@ -65,7 +66,9 @@ public class OpService {
                      EnvironmentService environmentService,
                      TaskReporter taskReporter,
                      WorkerEventService workerEventService,
-                     JwtTokenService jwtTokenService) {
+                     JwtTokenService jwtTokenService,
+                     JobHttpSslVerifyProperties sslVerifyProperties) {
+        this.httpHelper = HttpHelperFactory.getDefaultHttpHelper(sslVerifyProperties.isEnabled());
         this.workerConfig = workerConfig;
         this.fileTaskService = fileTaskService;
         this.gatewayInfoService = gatewayInfoService;

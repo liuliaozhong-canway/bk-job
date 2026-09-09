@@ -25,6 +25,8 @@
 package com.tencent.bk.job.file.worker.artifactory.service;
 
 import com.tencent.bk.job.common.model.dto.CommonCredential;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyProperties;
 import com.tencent.bk.job.file.worker.model.req.BaseReq;
 import com.tencent.bk.job.file_gateway.consts.FileSourceInfoConsts;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -37,10 +39,13 @@ import java.util.Map;
 public class ArtifactoryBaseService {
 
     private final MeterRegistry meterRegistry;
+    private final boolean sslVerifyEnabled;
 
     @Autowired
-    public ArtifactoryBaseService(MeterRegistry meterRegistry) {
+    public ArtifactoryBaseService(MeterRegistry meterRegistry,
+                                  JobHttpSslVerifyProperties sslVerifyProperties) {
         this.meterRegistry = meterRegistry;
+        this.sslVerifyEnabled = sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.BK_REPO);
     }
 
     public ArtifactoryRemoteClient getArtifactoryClientFromBaseReq(BaseReq req) {
@@ -50,7 +55,8 @@ public class ArtifactoryBaseService {
             (String) fileSourceInfoMap.get(FileSourceInfoConsts.KEY_BK_ARTIFACTORY_BASE_URL),
             credential.getUsername(),
             credential.getPassword(),
-            meterRegistry
+            meterRegistry,
+            sslVerifyEnabled
         );
     }
 }

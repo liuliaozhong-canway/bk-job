@@ -39,8 +39,12 @@ import java.io.InputStream;
 @Slf4j
 public class ArtifactoryRemoteClient extends ArtifactoryClient implements RemoteClient {
 
-    public ArtifactoryRemoteClient(String baseUrl, String username, String password, MeterRegistry meterRegistry) {
-        super(baseUrl, username, password, meterRegistry);
+    public ArtifactoryRemoteClient(String baseUrl,
+                                   String username,
+                                   String password,
+                                   MeterRegistry meterRegistry,
+                                   boolean sslVerifyEnabled) {
+        super(baseUrl, username, password, meterRegistry, sslVerifyEnabled);
     }
 
     @Override

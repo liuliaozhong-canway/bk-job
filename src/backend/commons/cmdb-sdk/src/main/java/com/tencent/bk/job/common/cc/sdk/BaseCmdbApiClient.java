@@ -46,8 +46,6 @@ import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
-import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
-import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import com.tencent.bk.job.common.util.http.WatchableHttpHelper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -100,10 +98,7 @@ public class BaseCmdbApiClient {
      */
     protected final FlowController globalFlowController;
     protected final CmdbConfig cmdbConfig;
-    private final boolean defaultHttpHelperSslVerifyEnabled;
-    private final int defaultHttpHelperIdentity;
-    private final String esbBaseAccessUrl;
-    private final String apiGwBaseAccessUrl;
+    private final boolean sslVerifyEnabled;
     /**
      * CMDB ESB API 客户端
      */
@@ -140,25 +135,20 @@ public class BaseCmdbApiClient {
                                 BkApiGatewayProperties bkApiGatewayProperties,
                                 CmdbConfig cmdbConfig,
                                 MeterRegistry meterRegistry,
-                                String lang) {
-        boolean cmdbSslVerifyEnabled = JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.CMDB);
-        WatchableHttpHelper httpHelper = HttpHelperFactory.getRetryableHttpHelper(
-            cmdbSslVerifyEnabled
-        );
-        this.defaultHttpHelperSslVerifyEnabled = cmdbSslVerifyEnabled;
-        this.defaultHttpHelperIdentity = System.identityHashCode(httpHelper);
-        this.esbBaseAccessUrl = esbProperties.getService().getUrl();
-        this.apiGwBaseAccessUrl = bkApiGatewayProperties.getCmdb().getUrl();
+                                String lang,
+                                boolean sslVerifyEnabled) {
+        this.sslVerifyEnabled = sslVerifyEnabled;
+        WatchableHttpHelper httpHelper = HttpHelperFactory.getRetryableHttpHelper(sslVerifyEnabled);
         this.esbCmdbApiClient = new BkApiClient(meterRegistry,
             CmdbMetricNames.CMDB_API_PREFIX,
-            esbBaseAccessUrl,
+            esbProperties.getService().getUrl(),
             httpHelper,
             lang
         );
         this.esbCmdbApiClient.setLogger(LoggerFactory.getLogger(this.getClass()));
         this.apiGwCmdbApiClient = new BkApiClient(meterRegistry,
             CmdbMetricNames.CMDB_API_PREFIX,
-            apiGwBaseAccessUrl,
+            bkApiGatewayProperties.getCmdb().getUrl(),
             httpHelper,
             lang
         );
@@ -168,18 +158,16 @@ public class BaseCmdbApiClient {
         this.cmdbSupplierAccount = cmdbConfig.getDefaultSupplierAccount();
         this.cmdbBkApiAuthorization = BkApiAuthorization.appAuthorization(
             appProperties.getCode(), appProperties.getSecret(), "admin");
-        log.info(
-            "CMDB HTTP client initialized|clientClass={}|sslVerifyEnabled={}|httpHelperIdentity={}"
-                + "|esbBaseAccessUrl={}|apiGwBaseAccessUrl={}|thread={}",
-            getClass().getName(), defaultHttpHelperSslVerifyEnabled, defaultHttpHelperIdentity,
-            esbBaseAccessUrl, apiGwBaseAccessUrl, Thread.currentThread().getName()
-        );
+        log.info("CMDB HTTP client initialized|clientClass={}|sslVerifyEnabled={}",
+            getClass().getName(), sslVerifyEnabled);
     }
 
     protected WatchableHttpHelper longRetryableHttpHelper() {
-        return HttpHelperFactory.getLongRetryableHttpHelper(
-            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.CMDB)
-        );
+        return HttpHelperFactory.getLongRetryableHttpHelper(sslVerifyEnabled);
+    }
+
+    boolean isSslVerifyEnabled() {
+        return sslVerifyEnabled;
     }
 
 
@@ -233,20 +221,6 @@ public class BaseCmdbApiClient {
                 .build();
             return getApiClientByApiGwType(apiGwType).doRequest(requestInfo, typeReference, httpHelper);
         } catch (Throwable e) {
-            boolean currentSslVerifyEnabled = JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.CMDB);
-            boolean useDefaultHttpHelper = httpHelper == null;
-            int selectedHttpHelperIdentity = useDefaultHttpHelper
-                ? defaultHttpHelperIdentity
-                : System.identityHashCode(httpHelper);
-            log.error(
-                "CMDB HTTP request failed diagnostic|apiGwType={}|baseAccessUrl={}|method={}|uri={}"
-                    + "|httpHelperSource={}|selectedHttpHelperIdentity={}"
-                    + "|defaultHttpHelperSslVerifyEnabled={}|currentSslVerifyEnabled={}|thread={}",
-                apiGwType, getBaseAccessUrl(apiGwType), method, uri,
-                useDefaultHttpHelper ? "cached-default" : "explicit",
-                selectedHttpHelperIdentity, defaultHttpHelperSslVerifyEnabled,
-                currentSslVerifyEnabled, Thread.currentThread().getName()
-            );
             String errorMsg = "Fail to request CMDB data|method=" + method + "|uri=" + uri + "|queryParams="
                 + queryParams + "|body="
                 + JsonUtils.toJsonWithoutSkippedFields(JsonUtils.toJsonWithoutSkippedFields(reqBody));
@@ -255,10 +229,6 @@ public class BaseCmdbApiClient {
         } finally {
             HttpMetricUtil.clearHttpMetric();
         }
-    }
-
-    private String getBaseAccessUrl(ApiGwType apiGwType) {
-        return apiGwType == ApiGwType.ESB ? esbBaseAccessUrl : apiGwBaseAccessUrl;
     }
 
     private BkApiClient getApiClientByApiGwType(ApiGwType apiGwType) {

@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpRequest;
 import com.tencent.bk.job.common.util.http.HttpResponse;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyProperties;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.common.constants.globalsetting.GlobalSettingKeys;
 import com.tencent.bk.job.manage.config.JobManageConfig;
@@ -58,11 +59,15 @@ public class BkPlatformInfoServiceImpl implements BkPlatformInfoService {
 
     private final GlobalSettingDAO globalSettingDAO;
     private final JobManageConfig jobManageConfig;
+    private final HttpHelper httpHelper;
 
     @Autowired
-    public BkPlatformInfoServiceImpl(GlobalSettingDAO globalSettingDAO, JobManageConfig jobManageConfig) {
+    public BkPlatformInfoServiceImpl(GlobalSettingDAO globalSettingDAO,
+                                     JobManageConfig jobManageConfig,
+                                     JobHttpSslVerifyProperties sslVerifyProperties) {
         this.globalSettingDAO = globalSettingDAO;
         this.jobManageConfig = jobManageConfig;
+        this.httpHelper = HttpHelperFactory.getDefaultHttpHelper(sslVerifyProperties.isEnabled());
     }
 
     @Override
@@ -98,7 +103,6 @@ public class BkPlatformInfoServiceImpl implements BkPlatformInfoService {
         String bkSharedResUrl = jobManageConfig.getBkSharedResUrl();
         String bkSharedBaseJsPath = jobManageConfig.getBkSharedBaseJsPath();
         String baseJsonFileUrl = buildBaseJsFileUrl(bkSharedResUrl, bkSharedBaseJsPath);
-        HttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
         HttpRequest request = HttpRequest.builder(HttpMethodEnum.GET, baseJsonFileUrl).build();
         HttpResponse resp = httpHelper.requestForSuccessResp(request);
         String baseJsStr = resp.getEntity();
