@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.gse.v2.model.TargetFile;
 import com.tencent.bk.job.common.gse.v2.model.TransferFileRequest;
 import com.tencent.bk.job.common.util.DataSizeConverter;
 import com.tencent.bk.job.common.util.FilePathUtils;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.cache.CustomPasswordCache;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
@@ -62,6 +63,7 @@ import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.slf4j.MDC;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -136,6 +138,16 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         parseSrcDestFileMap();
         // 初始化执行对象任务
         initFileSourceExecuteObjectTasks();
+        log.info(
+            "[{}]: File GSE source files resolved, requestId={}, traceId={}, spanId={}, srcFileCount={}, " +
+                "sourceExecuteObjectKeys={}",
+            stepInstance.getUniqueKey(),
+            JobContextUtil.getRequestId(),
+            MDC.get("traceId"),
+            MDC.get("spanId"),
+            srcFiles.size(),
+            sourceExecuteObjectTaskMap.keySet()
+        );
         // 保存文件子任务的初始状态
         saveInitialFileTaskLogs();
     }
@@ -291,6 +303,21 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             FileDest fileDest = srcDestFileMap.get(file);
             TargetFile targetFile = new TargetFile(fileDest.getDestName(), fileDest.getDestDirPath(), targetAgents);
 
+            log.info(
+                "[{}]: Add GSE file transfer task, requestId={}, traceId={}, spanId={}, sourceHost={}, " +
+                    "sourceDir={}, sourceFile={}, displaySrcFile={}, targetDir={}, targetFile={}, targetAgentCount={}",
+                stepInstance.getUniqueKey(),
+                JobContextUtil.getRequestId(),
+                MDC.get("traceId"),
+                MDC.get("spanId"),
+                file.getExecuteObject(),
+                file.getDir(),
+                file.getFileName(),
+                file.getDisplayFilePath(),
+                fileDest.getDestDirPath(),
+                fileDest.getDestName(),
+                targetAgents.size()
+            );
             FileTransferTask fileTask = new FileTransferTask(sourceFile, targetFile);
             request.addFileTask(fileTask);
         }

@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.engine.prepare.third;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
@@ -54,6 +55,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.exception.DataAccessException;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
@@ -116,6 +118,18 @@ public class ThirdFilePrepareService {
             fileSourceDTO.setServers(new ExecuteTargetDTO());
         }
         List<HostDTO> hostDTOList = new ArrayList<>();
+        log.info(
+            "[{}]: Resolve third file distribute source before download done, fileSourceTaskId={}, " +
+                "fileWorker=(cloudId={}, protocol={}, ip={}), requestId={}, traceId={}, spanId={}",
+            stepInstance.getUniqueKey(),
+            fileSourceTaskId,
+            taskInfoDTO.getCloudId(),
+            taskInfoDTO.getIpProtocol(),
+            taskInfoDTO.getIp(),
+            JobContextUtil.getRequestId(),
+            MDC.get("traceId"),
+            MDC.get("spanId")
+        );
         HostDTO hostDTO = thirdFileDistributeSourceHostProvisioner.getThirdFileDistributeSourceHost(
             taskInfoDTO.getCloudId(),
             taskInfoDTO.getIpProtocol(),

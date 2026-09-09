@@ -486,7 +486,25 @@ public class LogServiceImpl implements LogService {
                         }
                         ExecuteObject executeObject = executeObjectMap.get(srcKey);
                         if (executeObject == null) {
-                            log.warn("Can not find src execute object by key : {}", srcKey);
+                            log.warn(
+                                "Can not find src execute object by key, srcKey={}, availableKeys={}, " +
+                                    "fileLog=(taskId={}, mode={}, srcFileType={}, srcHostId={}, " +
+                                    "srcExecuteObjectId={}, destHostId={}, destExecuteObjectId={}, srcFile={}, " +
+                                    "displaySrcFile={}, status={}, process={})",
+                                srcKey,
+                                executeObjectMap.keySet(),
+                                fileTaskLogParam.getTaskId(),
+                                fileTaskLogParam.getMode(),
+                                fileTaskLogParam.getSrcFileType(),
+                                fileTaskLogParam.getSrcHostId(),
+                                fileTaskLogParam.getSrcExecuteObjectId(),
+                                fileTaskLogParam.getDestHostId(),
+                                fileTaskLogParam.getDestExecuteObjectId(),
+                                fileTaskLogParam.getSrcFile(),
+                                fileTaskLogParam.getDisplaySrcFile(),
+                                fileTaskLogParam.getStatus(),
+                                fileTaskLogParam.getProcess()
+                            );
                         }
                         return executeObject;
                     },
@@ -497,7 +515,26 @@ public class LogServiceImpl implements LogService {
                         }
                         ExecuteObject executeObject = executeObjectMap.get(destKey);
                         if (executeObject == null) {
-                            log.warn("Can not find dest execute object by key : {}", destKey);
+                            log.warn(
+                                "Can not find dest execute object by key, destKey={}, availableKeys={}, " +
+                                    "fileLog=(taskId={}, mode={}, srcFileType={}, srcHostId={}, " +
+                                    "srcExecuteObjectId={}, destHostId={}, destExecuteObjectId={}, srcFile={}, " +
+                                    "displaySrcFile={}, destFile={}, status={}, process={})",
+                                destKey,
+                                executeObjectMap.keySet(),
+                                fileTaskLogParam.getTaskId(),
+                                fileTaskLogParam.getMode(),
+                                fileTaskLogParam.getSrcFileType(),
+                                fileTaskLogParam.getSrcHostId(),
+                                fileTaskLogParam.getSrcExecuteObjectId(),
+                                fileTaskLogParam.getDestHostId(),
+                                fileTaskLogParam.getDestExecuteObjectId(),
+                                fileTaskLogParam.getSrcFile(),
+                                fileTaskLogParam.getDisplaySrcFile(),
+                                fileTaskLogParam.getDestFile(),
+                                fileTaskLogParam.getStatus(),
+                                fileTaskLogParam.getProcess()
+                            );
                         }
                         return executeObject;
                     }

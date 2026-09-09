@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -65,6 +66,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.MDC;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -385,6 +387,20 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
             fileSourceTaskStatusDTO.getIpProtocol(),
             fileSourceTaskStatusDTO.getIp()
         );
+        Map<String, String> filePathMap = fileSourceTaskStatusDTO.getFilePathMap();
+        log.info(
+            "[{}]: Resolve third file distribute source after download done, fileSourceTaskId={}, " +
+                "fileWorker=(cloudId={}, protocol={}, ip={}), requestId={}, traceId={}, spanId={}, filePathMap={}",
+            stepInstance.getUniqueKey(),
+            fileSourceTaskId,
+            fileSourceTaskStatusDTO.getCloudId(),
+            fileSourceTaskStatusDTO.getIpProtocol(),
+            fileSourceTaskStatusDTO.getIp(),
+            JobContextUtil.getRequestId(),
+            MDC.get("traceId"),
+            MDC.get("spanId"),
+            filePathMap
+        );
         ExecuteTargetDTO executeTargetDTO = new ExecuteTargetDTO();
         HostDTO hostDTO = thirdFileDistributeSourceHostProvisioner.getThirdFileDistributeSourceHost(
             fileSourceTaskStatusDTO.getCloudId(),
@@ -422,7 +438,6 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         executeTargetDTO.addStaticHosts(hostDTOList);
         executeTargetDTO.buildMergedExecuteObjects(stepInstance.isSupportExecuteObjectFeature());
         fileSourceDTO.setServers(executeTargetDTO);
-        Map<String, String> filePathMap = fileSourceTaskStatusDTO.getFilePathMap();
         log.debug(
             "[{}]: filePathMap={}",
             stepInstance.getUniqueKey(),
@@ -432,6 +447,15 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         // 设置downloadPath进行后续GSE分发
         for (FileDetailDTO file : files) {
             String downloadPath = filePathMap.get(file.getThirdFilePath());
+            log.info(
+                "[{}]: Set third file download path for GSE, fileSourceTaskId={}, thirdFilePath={}, " +
+                    "downloadPath={}, sourceHost={}",
+                stepInstance.getUniqueKey(),
+                fileSourceTaskId,
+                file.getThirdFilePath(),
+                downloadPath,
+                sourceHost
+            );
             file.setFilePath(downloadPath);
             file.setResolvedFilePath(downloadPath);
         }
@@ -443,6 +467,18 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                            List<ThirdFileSourceTaskLogDTO> logDTOList) {
         List<ServiceExecuteObjectLogDTO> serviceExecuteObjectLogDTOList = new ArrayList<>();
         for (ThirdFileSourceTaskLogDTO logDTO : logDTOList) {
+            log.info(
+                "[{}]: Resolve source host for third file pulling log, taskId={}, fileWorker=(cloudId={}, " +
+                    "protocol={}, ip={}), requestId={}, traceId={}, spanId={}",
+                stepInstance.getUniqueKey(),
+                fileSourceTaskStatusDTO.getTaskId(),
+                fileSourceTaskStatusDTO.getCloudId(),
+                fileSourceTaskStatusDTO.getIpProtocol(),
+                fileSourceTaskStatusDTO.getIp(),
+                JobContextUtil.getRequestId(),
+                MDC.get("traceId"),
+                MDC.get("spanId")
+            );
             HostDTO host = thirdFileDistributeSourceHostProvisioner.getThirdFileDistributeSourceHost(
                 fileSourceTaskStatusDTO.getCloudId(),
                 fileSourceTaskStatusDTO.getIpProtocol(),

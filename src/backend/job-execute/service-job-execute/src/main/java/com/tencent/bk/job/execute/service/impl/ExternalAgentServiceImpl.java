@@ -37,6 +37,7 @@ import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.MDC;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,6 +93,13 @@ public class ExternalAgentServiceImpl implements ExternalAgentService {
         ServiceHostDTO sourceHost;
 
         String requestId = JobContextUtil.getRequestId();
+        log.info(
+            "Selecting external agent host, requestId={}, traceId={}, spanId={}, candidates={}",
+            requestId,
+            MDC.get("traceId"),
+            MDC.get("spanId"),
+            describeHosts(hosts)
+        );
         if (StringUtils.isNoneEmpty(requestId)) {
             sourceHost = getAliveHostByRequestId(hosts, hostIpAliveStatusMap, requestId);
         } else {
@@ -119,8 +127,24 @@ public class ExternalAgentServiceImpl implements ExternalAgentService {
                                                    String requestId) {
         int hostCnt = hosts.size();
         int idx = Math.abs(requestId.hashCode()) % hostCnt;
+        log.info(
+            "Select external agent by requestId hash, requestId={}, hash={}, hostCnt={}, startIdx={}",
+            requestId,
+            requestId.hashCode(),
+            hostCnt,
+            idx
+        );
         for (int i = 0; i < hostCnt; i++) {
             ServiceHostDTO host = hosts.get((idx + i) % hostCnt);
+            log.info(
+                "Check external agent candidate by hash, offset={}, idx={}, cloudIp={}, hostId={}, agentId={}, alive={}",
+                i,
+                (idx + i) % hostCnt,
+                host.getCloudIp(),
+                host.getHostId(),
+                host.getAgentId(),
+                hostIpAliveStatusMap.get(host.getAgentId())
+            );
             if (Boolean.TRUE.equals(hostIpAliveStatusMap.get(host.getAgentId()))) {
                 return host;
             }
@@ -137,6 +161,17 @@ public class ExternalAgentServiceImpl implements ExternalAgentService {
             // 从上次使用的主机的下一个开始获取
             int idx = (i + (int) roundRobinCnt.get()) % hostCnt;
             ServiceHostDTO serviceHostDTO = hosts.get(idx);
+            log.info(
+                "Check external agent candidate by round robin, offset={}, idx={}, roundRobinCnt={}, cloudIp={}, " +
+                    "hostId={}, agentId={}, alive={}",
+                i,
+                idx,
+                roundRobinCnt.get(),
+                serviceHostDTO.getCloudIp(),
+                serviceHostDTO.getHostId(),
+                serviceHostDTO.getAgentId(),
+                hostIpAliveStatusMap.get(serviceHostDTO.getAgentId())
+            );
             if (Boolean.TRUE.equals(hostIpAliveStatusMap.get(serviceHostDTO.getAgentId()))) {
                 // 下一次获取，计数器从下一个开始
                 roundRobinCnt.accumulateAndGet(i + 1, Long::sum);
@@ -153,6 +188,17 @@ public class ExternalAgentServiceImpl implements ExternalAgentService {
                 .map(ExternalHostDTO::convertToHostDTO)
                 .collect(Collectors.toList())
         );
+    }
+
+    private String describeHosts(List<ServiceHostDTO> hosts) {
+        return hosts.stream()
+            .map(host -> String.format(
+                "{cloudIp=%s,hostId=%s,agentId=%s}",
+                host.getCloudIp(),
+                host.getHostId(),
+                host.getAgentId()
+            ))
+            .collect(Collectors.joining(","));
     }
 
 }
