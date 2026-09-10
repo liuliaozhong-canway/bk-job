@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.engine.prepare.third;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.DistributeFileFromExternalAgentException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.HostDTO;
@@ -387,26 +388,8 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
             fileSourceTaskStatusDTO.getIpProtocol(),
             fileSourceTaskStatusDTO.getIp()
         );
-        Map<String, String> filePathMap = fileSourceTaskStatusDTO.getFilePathMap();
-        log.info(
-            "[{}]: Resolve third file distribute source after download done, fileSourceTaskId={}, " +
-                "fileWorker=(cloudId={}, protocol={}, ip={}), requestId={}, traceId={}, spanId={}, filePathMap={}",
-            stepInstance.getUniqueKey(),
-            fileSourceTaskId,
-            fileSourceTaskStatusDTO.getCloudId(),
-            fileSourceTaskStatusDTO.getIpProtocol(),
-            fileSourceTaskStatusDTO.getIp(),
-            JobContextUtil.getRequestId(),
-            MDC.get("traceId"),
-            MDC.get("spanId"),
-            filePathMap
-        );
         ExecuteTargetDTO executeTargetDTO = new ExecuteTargetDTO();
-        HostDTO hostDTO = thirdFileDistributeSourceHostProvisioner.getThirdFileDistributeSourceHost(
-            fileSourceTaskStatusDTO.getCloudId(),
-            fileSourceTaskStatusDTO.getIpProtocol(),
-            fileSourceTaskStatusDTO.getIp()
-        );
+        HostDTO hostDTO = resolveDistributeSourceHost(fileSourceTaskStatusDTO);
         if (hostDTO == null) {
             log.error(
                 "[{}]: Cannot find file-worker host info by IP{} (cloudAreaId={}, ip={}), " +
@@ -438,6 +421,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         executeTargetDTO.addStaticHosts(hostDTOList);
         executeTargetDTO.buildMergedExecuteObjects(stepInstance.isSupportExecuteObjectFeature());
         fileSourceDTO.setServers(executeTargetDTO);
+        Map<String, String> filePathMap = fileSourceTaskStatusDTO.getFilePathMap();
         log.debug(
             "[{}]: filePathMap={}",
             stepInstance.getUniqueKey(),
@@ -466,24 +450,8 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                            FileSourceTaskStatusDTO fileSourceTaskStatusDTO,
                            List<ThirdFileSourceTaskLogDTO> logDTOList) {
         List<ServiceExecuteObjectLogDTO> serviceExecuteObjectLogDTOList = new ArrayList<>();
+        HostDTO host = resolveDistributeSourceHost(fileSourceTaskStatusDTO);
         for (ThirdFileSourceTaskLogDTO logDTO : logDTOList) {
-            log.info(
-                "[{}]: Resolve source host for third file pulling log, taskId={}, fileWorker=(cloudId={}, " +
-                    "protocol={}, ip={}), requestId={}, traceId={}, spanId={}",
-                stepInstance.getUniqueKey(),
-                fileSourceTaskStatusDTO.getTaskId(),
-                fileSourceTaskStatusDTO.getCloudId(),
-                fileSourceTaskStatusDTO.getIpProtocol(),
-                fileSourceTaskStatusDTO.getIp(),
-                JobContextUtil.getRequestId(),
-                MDC.get("traceId"),
-                MDC.get("spanId")
-            );
-            HostDTO host = thirdFileDistributeSourceHostProvisioner.getThirdFileDistributeSourceHost(
-                fileSourceTaskStatusDTO.getCloudId(),
-                fileSourceTaskStatusDTO.getIpProtocol(),
-                fileSourceTaskStatusDTO.getIp()
-            );
             serviceExecuteObjectLogDTOList.add(buildServiceHostLogDTO(host, logDTO));
         }
         logService.writeFileLogsWithTimestamp(
@@ -491,6 +459,38 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
             serviceExecuteObjectLogDTOList,
             System.currentTimeMillis()
         );
+    }
+
+    private HostDTO resolveDistributeSourceHost(FileSourceTaskStatusDTO fileSourceTaskStatusDTO) {
+        if (thirdFileDistributeSourceHostProvisioner.shouldReuseSelectedSourceHost()) {
+            String fileSourceTaskId = fileSourceTaskStatusDTO.getTaskId();
+            HostDTO selectedSourceHost = findSelectedSourceHost(fileSourceTaskId);
+            if (selectedSourceHost != null) {
+                return selectedSourceHost;
+            }
+            String message = "Selected external agent source host not found, stepInstanceId=" +
+                stepInstance.getId() + ", fileSourceTaskId=" + fileSourceTaskId;
+            throw new DistributeFileFromExternalAgentException(message, ErrorCode.INTERNAL_ERROR);
+        }
+        return thirdFileDistributeSourceHostProvisioner.getThirdFileDistributeSourceHost(
+            fileSourceTaskStatusDTO.getCloudId(),
+            fileSourceTaskStatusDTO.getIpProtocol(),
+            fileSourceTaskStatusDTO.getIp()
+        );
+    }
+
+    private HostDTO findSelectedSourceHost(String fileSourceTaskId) {
+        for (FileSourceDTO fileSourceDTO : fileSourceList) {
+            if (fileSourceDTO == null || !StringUtils.equals(fileSourceTaskId, fileSourceDTO.getFileSourceTaskId())) {
+                continue;
+            }
+            ExecuteTargetDTO servers = fileSourceDTO.getServers();
+            if (servers != null && CollectionUtils.isNotEmpty(servers.getStaticIpList())) {
+                return servers.getStaticIpList().get(0);
+            }
+            break;
+        }
+        return null;
     }
 
     /**
