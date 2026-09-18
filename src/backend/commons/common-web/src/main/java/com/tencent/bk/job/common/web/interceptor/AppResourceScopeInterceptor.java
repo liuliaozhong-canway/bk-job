@@ -80,8 +80,18 @@ public class AppResourceScopeInterceptor implements AsyncHandlerInterceptor {
             return true;
         }
         addAppResourceScope(request);
+        logJobContextDiagnostic(request);
 
         return true;
+    }
+
+    private void logJobContextDiagnostic(HttpServletRequest request) {
+        log.info(
+            "JobContext propagation diagnostic|phase=http-entry|path={}|{}|thread={}",
+            request.getServletPath(),
+            JobContextUtil.getContextDiagnosticInfo(),
+            Thread.currentThread().getName()
+        );
     }
 
     private boolean shouldFilter(HttpServletRequest request) {

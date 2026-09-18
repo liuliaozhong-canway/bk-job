@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 /**
  * Job http 请求上下文工具类
@@ -50,6 +51,28 @@ public class JobContextUtil {
 
     public static JobContext getContext() {
         return JobContextThreadLocal.get();
+    }
+
+    /**
+     * 获取用于上下文传播排查的安全摘要，不包含 HTTP request/response 及指标集合。
+     */
+    public static String getContextDiagnosticInfo() {
+        JobContext context = getContext();
+        if (context == null) {
+            return "contextPresent=false|requestId=null|username=null|appResourceScope=null|userLang=null|"
+                + "requestFrom=null|startTime=null|allowMigration=null|contextIdentity=null";
+        }
+        return new StringJoiner("|")
+            .add("contextPresent=true")
+            .add("requestId=" + context.getRequestId())
+            .add("username=" + context.getUsername())
+            .add("appResourceScope=" + context.getAppResourceScope())
+            .add("userLang=" + context.getUserLang())
+            .add("requestFrom=" + context.getRequestFrom())
+            .add("startTime=" + context.getStartTime())
+            .add("allowMigration=" + context.getAllowMigration())
+            .add("contextIdentity=" + System.identityHashCode(context))
+            .toString();
     }
 
     public static void setContext(JobContext jobContext) {

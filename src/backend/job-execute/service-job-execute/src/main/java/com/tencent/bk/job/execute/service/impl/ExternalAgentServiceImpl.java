@@ -92,6 +92,7 @@ public class ExternalAgentServiceImpl implements ExternalAgentService {
         ServiceHostDTO sourceHost;
 
         String requestId = JobContextUtil.getRequestId();
+        logJobContextDiagnostic();
         if (StringUtils.isNoneEmpty(requestId)) {
             sourceHost = getAliveHostByRequestId(hosts, hostIpAliveStatusMap, requestId);
         } else {
@@ -111,6 +112,14 @@ public class ExternalAgentServiceImpl implements ExternalAgentService {
             sourceHost.getAgentId()
         );
         return sourceHost;
+    }
+
+    private void logJobContextDiagnostic() {
+        log.info(
+            "JobContext propagation diagnostic|phase=external-agent-source-selection|{}|thread={}",
+            JobContextUtil.getContextDiagnosticInfo(),
+            Thread.currentThread().getName()
+        );
     }
 
     // 通过requestId的hash值选择一个存活的主机

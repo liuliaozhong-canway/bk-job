@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.result;
 
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.execute.engine.quota.limit.RunningJobKeepaliveManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleLimiter;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
@@ -111,6 +112,7 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
     public void execute() {
         Span span = getChildSpan();
         try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
+            logJobContextDiagnostic();
             doExecute();
         } catch (Exception e) {
             span.error(e);
@@ -118,6 +120,15 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
         } finally {
             span.end();
         }
+    }
+
+    private void logJobContextDiagnostic() {
+        log.info(
+            "JobContext propagation diagnostic|phase=result-handle-execute|taskId={}|{}|thread={}",
+            getTaskId(),
+            JobContextUtil.getContextDiagnosticInfo(),
+            Thread.currentThread().getName()
+        );
     }
 
     public void doExecute() {

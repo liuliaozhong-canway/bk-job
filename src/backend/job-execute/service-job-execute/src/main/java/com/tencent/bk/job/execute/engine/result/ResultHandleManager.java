@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.result;
 
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.execute.common.exception.MessageHandlerUnavailableException;
 import com.tencent.bk.job.execute.common.ha.DestroyOrder;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
@@ -161,6 +162,7 @@ public class ResultHandleManager implements SmartLifecycle {
     public void handleDeliveredTask(ContinuousScheduledTask task) {
         resultHandleLimiter.acquire();
         log.info("Handle delivered task: {}", task);
+        logJobContextDiagnostic("delivered", task.getTaskId());
         ScheduledContinuousResultHandleTask scheduleTask =
             new ScheduledContinuousResultHandleTask(resultHandleTaskSampler, tracer, task, this,
                 resultHandleTaskKeepaliveManager, resultHandleLimiter, runningJobKeepaliveManager);
@@ -445,6 +447,7 @@ public class ResultHandleManager implements SmartLifecycle {
                 if (task != null) {
                     isBusy = true;
                     log.debug("Get task from queue, task: {}", task);
+                    logJobContextDiagnostic("dequeued", task.getTaskId());
                     // 调度误差
                     long scheduleErrorInMills = System.currentTimeMillis() - task.getExpireTime();
                     if (scheduleErrorInMills > 1000) {
@@ -494,5 +497,15 @@ public class ResultHandleManager implements SmartLifecycle {
         boolean isBusy() {
             return this.isBusy;
         }
+    }
+
+    private void logJobContextDiagnostic(String phase, String taskId) {
+        log.info(
+            "JobContext propagation diagnostic|phase=result-handle-{}|taskId={}|{}|thread={}",
+            phase,
+            taskId,
+            JobContextUtil.getContextDiagnosticInfo(),
+            Thread.currentThread().getName()
+        );
     }
 }
